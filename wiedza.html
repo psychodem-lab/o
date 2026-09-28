@@ -50,18 +50,19 @@ h1{font-size:clamp(2rem,1.4rem + 2.6vw,3.1rem)}
 .container{width:100%;padding:0}
 h2{border-bottom:2px solid var(--m2);padding-bottom:8px;text-align:center;margin-top:48px;font-weight:400}
 h2:first-of-type{margin-top:32px}
-ul{list-style-type:none;padding:0;display:flex;flex-wrap:wrap;justify-content:center;margin:24px 0 0}
-ul li{background:var(--paper);border:1px solid var(--line);margin:12px;padding:24px 20px;min-width:300px;flex-grow:1;max-width:350px;text-align:left;border-radius:20px;box-shadow:0 2px 8px rgba(26,63,48,.06);transition:transform .2s,background-color .2s;display:flex;flex-direction:column;justify-content:flex-start}
-ul li:hover{transform:translateY(-5px);background:var(--m1)}
-.poster-item-link{text-decoration:none;color:var(--g3);font-weight:600;font-size:1.2em;margin-bottom:5px;display:block}
-.poster-description{font-size:.9em;color:var(--soft);margin-top:10px}
-.link-list li{padding:20px 15px;min-width:150px;max-width:200px;text-align:center;justify-content:space-between;height:auto}
+.tlist{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;justify-content:center}
+.tlist>li{background:var(--paper);border:1px solid var(--line);margin:0;padding:16px 14px;min-width:0;max-width:none;text-align:left;border-radius:16px;box-shadow:0 2px 8px rgba(26,63,48,.06);transition:transform .2s,background-color .2s;display:flex;flex-direction:column;justify-content:flex-start;font-size:.95rem}
+.tlist>li:hover{transform:translateY(-3px);background:var(--m1)}
+.poster-item-link{text-decoration:none;color:var(--g3);font-weight:600;font-size:1.02em;margin-bottom:4px;display:block}
+.poster-description{font-size:.85em;color:var(--soft);margin-top:8px}
+.tlist.link-list{grid-template-columns:repeat(auto-fill,minmax(140px,170px))}
+.tlist.link-list>li{padding:14px 12px;text-align:center;justify-content:space-between;height:auto;align-items:center}
 .resource-icon{max-width:60px;height:auto;margin:0 auto 10px auto;display:block;border-radius:8px}
 .link-list .resource-title{font-size:1em;margin-top:auto;margin-bottom:0;font-weight:600;color:var(--g3);text-decoration:none}
 .link-list .description{display:none}
-.book-title{color:var(--g3);font-weight:600;font-size:1.2em;margin-bottom:5px}
-.author{font-style:italic;color:var(--g);margin-bottom:10px;display:block}
-.toggle-article{cursor:pointer;text-decoration:none;color:var(--g3);font-weight:600;display:block;font-size:1.2em;margin-bottom:5px;user-select:none}
+.book-title{color:var(--g3);font-weight:600;font-size:1.02em;margin-bottom:4px}
+.author{font-style:italic;color:var(--g);margin-bottom:8px;display:block;font-size:.9em}
+.toggle-article{cursor:pointer;text-decoration:none;color:var(--g3);font-weight:600;display:block;font-size:1.02em;margin-bottom:4px;user-select:none}
 .toggle-article:hover{color:var(--g)}
 .article-date{font-size:.85em;color:var(--g);margin-bottom:10px;display:block}
 .article-content{max-height:0;overflow:hidden;transition:max-height .4s ease-in-out,padding-top .4s ease-in-out;padding-top:0}
@@ -100,9 +101,9 @@ footer{border-top:1px solid var(--line);padding:28px 0 calc(28px + env(safe-area
 @media(max-width:768px){
 .main-content-wrapper{max-width:100%;padding-left:10px;padding-right:10px}
 .container{padding:0}
-ul:not(.link-list) li{width:100%;min-width:unset;margin:10px 0}
-.link-list li{width:45%;max-width:unset;min-width:100px;margin:10px 5px}
-@media(max-width:480px){.link-list li{width:95%;margin:10px 0}}
+.tlist{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tlist.link-list{grid-template-columns:repeat(2,1fr)}
+@media(max-width:480px){.tlist{grid-template-columns:1fr}.tlist.link-list{grid-template-columns:1fr}}
 }
 @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
 </style>
@@ -117,10 +118,10 @@ ul:not(.link-list) li{width:100%;min-width:unset;margin:10px 0}
     <nav class="nav" id="nav" aria-label="Główna nawigacja">
       <ul>
         <li><a class="nl" href="index.html#zespol">Zespół</a></li>
-        <li><a class="nl" href="Biblioteka.html">Biblioteka</a></li>
+        <li><a class="nl" href="narzedzia.html">Biblioteka</a></li>
         <li><a class="nl" href="wiedza.html" aria-current="page">Baza wiedzy</a></li>
         <li><a class="nl" href="index.html#kontakt">Kontakt</a></li>
-        <li><a class="btn bp" href="mailto:psychologdemenczuk@gmail.com?subject=Umówienie%20pierwszej%20wizyty">Umów wizytę</a></li>
+        <li><a class="btn bp" href="index.html#kontakt">Umów wizytę</a></li>
       </ul>
     </nav>
   </div>
@@ -135,7 +136,7 @@ ul:not(.link-list) li{width:100%;min-width:unset;margin:10px 0}
 
         <h2 id="plakaty">Plakaty Psychoedukacyjne (Kliknij, aby zobaczyć podgląd)</h2>
 
-        <ul>
+        <ul class="tlist">
             <li class="poster-tile">
                 <a href="psychoedukacja/3.png" target="_blank" class="poster-item-link">
                     Emocje
@@ -167,7 +168,7 @@ ul:not(.link-list) li{width:100%;min-width:unset;margin:10px 0}
         </ul>
         <h2 id="linki">Polecane Linki do Zaufanych Źródeł</h2>
 
-        <ul class="link-list">
+        <ul class="tlist link-list">
             <li class="link-tile">
                 <img src="logo-pttpb.png" alt="Logo PTTPB" class="resource-icon">
                 <a href="https://www.pttpb.pl/" target="_blank" class="resource-title">PTTPB</a>
@@ -180,7 +181,7 @@ ul:not(.link-list) li{width:100%;min-width:unset;margin:10px 0}
 
         <h2 id="literatura">Polecana Literatura i Książki CBT</h2>
 
-        <ul>
+        <ul class="tlist">
             <li>
                 <span class="book-title">Umysł ponad nastrojem. Zmień nastrój dzięki Terapii Poznawczo-Behawioralnej</span>
                 <span class="author">D. Greenberger, C. Padesky</span>
@@ -190,7 +191,7 @@ ul:not(.link-list) li{width:100%;min-width:unset;margin:10px 0}
 
         <h2 id="artykuly">Polecane Artykuły i Wpisy (Kliknij, aby zobaczyć podgląd)</h2>
 
-        <ul>
+        <ul class="tlist">
             <li class="article-tile">
                 <span class="toggle-article">Jak działa CBT? Podstawowe założenia terapii poznawczo-behawioralnej</span>
                 <span class="article-date">Opublikowano: 10.11.2025</span>
@@ -209,7 +210,7 @@ W praktyce terapia opiera się na partnerskiej współpracy, w której razem z t
 
         </ul>
 
-        <p class="back"><a class="btn bo" href="Biblioteka.html">← Powrót do Biblioteki</a></p>
+        <p class="back"><a class="btn bo" href="narzedzia.html">← Powrót do Biblioteki</a></p>
 
     </div>
 </div>
@@ -218,7 +219,7 @@ W praktyce terapia opiera się na partnerskiej współpracy, w której razem z t
 <footer>
   <div class="wrap foot">
     <p>© Psychodem. Psychoterapia poznawczo-behawioralna CBT</p>
-    <nav aria-label="Stopka"><a href="index.html#zespol">Zespół</a><a href="Biblioteka.html">Biblioteka</a><a href="index.html#kontakt">Kontakt</a></nav>
+    <nav aria-label="Stopka"><a href="index.html#zespol">Zespół</a><a href="narzedzia.html">Biblioteka</a><a href="index.html#kontakt">Kontakt</a></nav>
   </div>
 </footer>
 
