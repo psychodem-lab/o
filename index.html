@@ -64,6 +64,7 @@ h3{font-size:clamp(1.7rem,1.3rem + 1.4vw,2.3rem);font-weight:500}
 .lede{margin-top:24px;max-width:36ch;font-size:clamp(1.15rem,1.05rem + .5vw,1.35rem);color:var(--soft)}
 .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
 .art{position:absolute;right:2vw;top:50%;width:min(40vw,440px);transform:translateY(-58%)}
+.art-logo{border-radius:32px;background:var(--paper);border:1px solid var(--line);box-shadow:0 20px 40px -20px rgba(26,63,48,.25);object-fit:cover;height:auto}
 
 /* zespół */
 .team{background:var(--paper);padding:clamp(56px,9vw,112px) 0;border-radius:0 0 clamp(24px,4vw,48px) clamp(24px,4vw,48px)}
@@ -143,18 +144,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 calc(28px + env(safe-area
 
 <main id="main">
   <section class="hero" aria-labelledby="hero-title">
-    <svg class="art" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
-      <defs><path id="lf" d="M0 0C20-30 70-30 90 0 70 30 20 30 0 0Z"/></defs>
-      <circle cx="230" cy="190" r="170" fill="#DCEDE2"/><circle cx="150" cy="285" r="90" fill="#C4DFCF"/>
-      <path d="M110 380C140 290 190 210 260 90" fill="none" stroke="#2F6B55" stroke-width="3" stroke-linecap="round"/>
-      <use href="#lf" fill="#8DB59F" transform="translate(135 300) rotate(-25)"/>
-      <use href="#lf" fill="#2F6B55" transform="translate(133 305) rotate(-155)"/>
-      <use href="#lf" fill="#5F9A80" transform="translate(180 220) rotate(-30)"/>
-      <use href="#lf" fill="#8DB59F" transform="translate(178 224) rotate(-150)"/>
-      <use href="#lf" fill="#2F6B55" transform="translate(228 140) rotate(-40)"/>
-      <use href="#lf" fill="#5F9A80" transform="translate(225 145) rotate(-145)"/>
-      <use href="#lf" fill="#8DB59F" transform="translate(262 92) rotate(-80) scale(.8)"/>
-    </svg>
+    <img class="art art-logo" src="logos.jpg" alt="Logo Psychodem" loading="eager" decoding="async">
     <div class="wrap">
       <div class="hero-copy">
         <h1 id="hero-title">Pomoc psychologiczna i&nbsp;psychoterapia</h1>
