@@ -96,9 +96,19 @@ h3{font-size:clamp(1.7rem,1.3rem + 1.4vw,2.3rem);font-weight:500}
 
 /* kontakt */
 .contact{padding:clamp(32px,5vw,56px) 0 clamp(56px,9vw,96px)}
-.cbox{display:grid;grid-template-columns:1fr auto;align-items:center;gap:28px 40px;padding:clamp(28px,6vw,64px);border-radius:32px;background:var(--m1)}
+.cbox{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:28px 40px;padding:clamp(28px,6vw,64px);border-radius:32px;background:var(--m1)}
 .cbox p{margin-top:14px;max-width:46ch;color:var(--soft)}
 .addr{display:inline-block;margin-top:18px;font:500 clamp(1.2rem,.9rem + 1.6vw,1.75rem)/1.3 var(--serif);color:var(--g3);overflow-wrap:anywhere}
+.form{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:24px;display:grid;gap:14px}
+.field{display:grid;gap:6px;font-size:1rem}
+.field label{font-weight:600;color:var(--g3)}
+.field input,.field select,.field textarea{font:400 1rem/1.5 var(--sans);color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;width:100%}
+.field textarea{min-height:96px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--g)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;color:var(--soft)}
+.check input{width:20px;height:20px;margin-top:3px;accent-color:var(--g)}
+.fnote{font-size:.9rem;color:var(--soft)}
+.fallback{font-size:.95rem;color:var(--soft)}
 
 /* stopka */
 footer{border-top:1px solid var(--line);padding:28px 0 calc(28px + env(safe-area-inset-bottom));font-size:.95rem;color:var(--soft)}
@@ -136,7 +146,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 calc(28px + env(safe-area
         <li><a class="nl" href="#zespol">O nas</a></li>
         <li><a class="nl" href="#narzedziownik">Narzędziownik</a></li>
         <li><a class="nl" href="#kontakt">Kontakt</a></li>
-        <li><a class="btn bp" href="mailto:psychologdemenczuk@gmail.com?subject=Umówienie%20pierwszej%20wizyty">Umów wizytę</a></li>
+        <li><a class="btn bp" href="#kontakt">Umów wizytę</a></li>
       </ul>
     </nav>
   </div>
@@ -150,7 +160,7 @@ footer{border-top:1px solid var(--line);padding:28px 0 calc(28px + env(safe-area
         <h1 id="hero-title">Pomoc psychologiczna i&nbsp;psychoterapia</h1>
         <p class="lede">Psychoterapia poznawczo-behawioralna (CBT) w&nbsp;bezpiecznej przestrzeni. Pracujemy online oraz stacjonarnie.</p>
         <div class="actions">
-          <a class="btn bp" href="mailto:psychologdemenczuk@gmail.com?subject=Umówienie%20pierwszej%20wizyty">Umów pierwszą wizytę</a>
+          <a class="btn bp" href="#kontakt">Umów pierwszą wizytę</a>
           <a class="btn bo" href="#zespol">Poznaj nas</a>
         </div>
       </div>
@@ -222,11 +232,43 @@ footer{border-top:1px solid var(--line);padding:28px 0 calc(28px + env(safe-area
       <div class="cbox">
         <div>
           <h2 id="contact-title">Skontaktuj się z&nbsp;nami</h2>
-          <p>Napisz e-mail, aby umówić pierwszą wizytę. Pracujemy online oraz stacjonarnie.</p>
+          <p>Wypełnij formularz, aby umówić pierwszą wizytę. Oddzwonimy / odpiszemy z propozycją terminu. Pracujemy online oraz stacjonarnie.</p>
           <a class="addr" href="mailto:psychologdemenczuk@gmail.com">psychologdemenczuk@gmail.com</a>
-          <!-- Tu możesz dodać numer telefonu, np.: <p><a href="tel:+48XXXXXXXXX">+48 XXX XXX XXX</a></p> -->
+          <p class="fallback">Wolisz e-mail? <a href="mailto:psychologdemenczuk@gmail.com?subject=Umówienie%20pierwszej%20wizyty">Napisz bezpośrednio</a>.</p>
         </div>
-        <a class="btn bp" href="mailto:psychologdemenczuk@gmail.com?subject=Umówienie%20pierwszej%20wizyty">Napisz e-mail</a>
+        <form class="form" id="booking" action="https://formsubmit.co/psychologdemenczuk@gmail.com" method="POST">
+          <input type="hidden" name="_subject" value="Nowe zgłoszenie wizyty – Psychodem">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="text" name="_honey" style="display:none">
+          <div class="field">
+            <label for="f-name">Imię</label>
+            <input id="f-name" name="Imię" type="text" autocomplete="given-name" required placeholder="Jak mamy się zwracać?">
+          </div>
+          <div class="field">
+            <label for="f-contact">Telefon lub e-mail</label>
+            <input id="f-contact" name="Kontakt" type="text" autocomplete="tel" required placeholder="Np. 600 000 000 lub adres e-mail">
+          </div>
+          <div class="field">
+            <label for="f-mode">Tryb</label>
+            <select id="f-mode" name="Tryb">
+              <option>Online</option>
+              <option>Stacjonarnie</option>
+              <option>Bez preferencji</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-when">Preferowany termin</label>
+            <input id="f-when" name="Preferowany termin" type="text" placeholder="Np. pn–pt po 17:00">
+          </div>
+          <div class="field">
+            <label for="f-msg">Wiadomość (opcjonalnie)</label>
+            <textarea id="f-msg" name="Wiadomość" placeholder="Krótko o tym, z czym przychodzisz"></textarea>
+          </div>
+          <label class="check"><input type="checkbox" required><span>Wyrażam zgodę na kontakt w sprawie umówienia wizyty.</span></label>
+          <button class="btn bp" type="submit">Wyślij zgłoszenie</button>
+          <p class="fnote">Po pierwszym wysłaniu FormSubmit poprosi o aktywację adresu (jednorazowy e-mail potwierdzający). Potem zgłoszenia trafiają prosto na skrzynkę.</p>
+        </form>
       </div>
     </div>
   </section>
@@ -248,6 +290,20 @@ footer{border-top:1px solid var(--line);padding:28px 0 calc(28px + env(safe-area
   document.addEventListener('click',function(e){if(!e.target.closest('.top'))set(false)});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&n.classList.contains('open')){set(false);b.focus()}});
   window.addEventListener('resize',function(){if(innerWidth>820)set(false)});
+})();
+(function(){
+  var f=document.getElementById('booking');
+  if(!f) return;
+  // Podgląd lokalny file:// nie obsłuży FormSubmit – wyślij przez klienta poczty zamiast POST
+  f.addEventListener('submit',function(e){
+    if(location.protocol==='file:'){
+      e.preventDefault();
+      var g=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+      var subject=encodeURIComponent('Nowe zgłoszenie wizyty – Psychodem');
+      var body=encodeURIComponent('Imię: '+g('f-name')+'\nKontakt: '+g('f-contact')+'\nTryb: '+g('f-mode')+'\nPreferowany termin: '+g('f-when')+'\nWiadomość: '+g('f-msg'));
+      location.href='mailto:psychologdemenczuk@gmail.com?subject='+subject+'&body='+body;
+    }
+  });
 })();
 </script>
 </body>
