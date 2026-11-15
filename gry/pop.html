@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bąbelki Pro</title>
+    <style>
+        body { 
+            background: #0f172a; 
+            margin: 0; 
+            overflow: hidden; 
+            font-family: 'Segoe UI', sans-serif;
+            touch-action: none;
+        }
+        .ui { 
+            position: absolute; 
+            top: 20px; 
+            left: 0; 
+            width: 100%; 
+            text-align: center; 
+            color: #f8fafc; 
+            z-index: 10; 
+            pointer-events: none; 
+        }
+        #score { font-size: 2rem; font-weight: bold; color: #38bdf8; }
+        canvas { display: block; position: fixed; top: 0; left: 0; cursor: crosshair; }
+    </style>
+</head>
+<body>
+
+<div class="ui">
+    <div id="score">0</div>
+    <p style="margin:5px; opacity: 0.6; color: #94a3b8;">Precyzyjne kliknięcia dają więcej punktów!</p>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreElement = document.getElementById("score");
+
+    let bubbles = [];
+    let particles = [];
+    let score = 0;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createBubble() {
+        const r = 20 + Math.random() * 40;
+        // Większe bąbelki (r) poruszają się szybciej (fizyka wyporu)
+        const speed = (r / 50) + Math.random() * 0.5;
+
+        if (bubbles.length < 20) { 
+            bubbles.push({
+                x: Math.random() * canvas.width,
+                y: canvas.height + 100,
+                r: r,
+                speed: speed,
+                sinOffset: Math.random() * 1000,
+                opacity: 0.4 + Math.random() * 0.3
+            });
+        }
+    }
+
+    function handleInput(e) {
+        const clientX = e.touches ? e.changedTouches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.changedTouches[0].clientY : e.clientY;
+
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+            let b = bubbles[i];
+            let dist = Math.sqrt((clientX - b.x) ** 2 + (clientY - b.y) ** 2);
+            
+            if (dist < b.r + 10) {
+                // Obliczanie punktów na podstawie precyzji (0-100 pkt)
+                let precision = Math.max(0, 1 - (dist / b.r));
+                let points = Math.round(precision * 100);
+                score += points;
+                scoreElement.innerText = score;
+
+                if (window.navigator.vibrate) window.navigator.vibrate(30);
+                
+                createSplash(b.x, b.y, b.opacity);
+                bubbles.splice(i, 1);
+                break;
+            }
+        }
+    }
+
+    function createSplash(x, y, opacity) {
+        for (let i = 0; i < 12; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 8,
+                vy: (Math.random() - 0.5) * 8,
+                life: 1.0,
+                color: `rgba(255, 255, 255, ${opacity})`
+            });
+        }
+    }
+
+    canvas.addEventListener("mousedown", handleInput);
+    canvas.addEventListener("touchstart", (e) => { e.preventDefault(); handleInput(e); }, { passive: false });
+
+    function loop() {
+        // Tło
+        let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        grad.addColorStop(0, "#1e293b");
+        grad.addColorStop(1, "#0f172a");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Bąbelki
+        bubbles.forEach((b, i) => {
+            b.y -= b.speed;
+            b.x += Math.sin(Date.now() / 1000 + b.sinOffset) * 0.8;
+
+            ctx.beginPath();
+            let bGrad = ctx.createRadialGradient(b.x - b.r*0.3, b.y - b.r*0.3, b.r*0.1, b.x, b.y, b.r);
+            bGrad.addColorStop(0, `rgba(255, 255, 255, ${b.opacity})`);
+            bGrad.addColorStop(1, `rgba(100, 180, 255, 0.05)`);
+            
+            ctx.fillStyle = bGrad;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${b.opacity * 0.4})`;
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            if (b.y < -100) bubbles.splice(i, 1);
+        });
+
+        // Cząsteczki
+        particles.forEach((p, i) => {
+            p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+            if (p.life <= 0) particles.splice(i, 1);
+            else {
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.life})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+
+        if (Math.random() < 0.04) createBubble();
+        requestAnimationFrame(loop);
+    }
+    loop();
+</script>
+</body>
+</html>

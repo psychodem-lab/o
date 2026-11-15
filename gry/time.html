@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Zegar</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23D98A3D'/%3E%3Ccircle cx='50' cy='50' r='38' fill='%23F6F3EC'/%3E%3Cline x1='50' y1='50' x2='50' y2='28' stroke='%23262421' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='50' y1='50' x2='68' y2='50' stroke='%23262421' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='5' fill='%23D98A3D'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F3EC; --text:#262421; --accent:#D98A3D; --accent-soft:rgba(217,138,61,0.16);
+  --muted:color-mix(in srgb, var(--text) 58%, transparent);
+  --panel:color-mix(in srgb, var(--bg) 92%, var(--text) 8%);
+  --border:color-mix(in srgb, var(--text) 11%, transparent);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10131A; --text:#EDEBE6; --accent:#7FA8D9; --accent-soft:rgba(127,168,217,0.18);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10131A; --text:#EDEBE6; --accent:#7FA8D9; --accent-soft:rgba(127,168,217,0.18);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:'Outfit',system-ui,-apple-system,sans-serif;
+  transition:background .4s ease, color .4s ease;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  overflow-x:hidden;
+  touch-action:manipulation;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+button{font-family:inherit;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+
+#starfield{position:fixed; inset:0; z-index:-1; display:none;}
+
+.top-controls{
+  position:fixed; bottom:calc(18px + env(safe-area-inset-bottom,0px)); right:18px;
+  display:flex; gap:10px; z-index:12;
+}
+.icon-btn{
+  width:44px; height:44px; border-radius:50%; border:1px solid var(--border);
+  background:var(--panel); color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.icon-btn svg{width:19px; height:19px; stroke:currentColor; fill:none; stroke-width:1.8;}
+.icon-moon{display:none;}
+[data-theme="dark"] .icon-sun{display:none;}
+[data-theme="dark"] .icon-moon{display:block;}
+
+.settings-panel{
+  position:fixed; bottom:calc(70px + env(safe-area-inset-bottom,0px)); right:18px; width:250px;
+  max-height:80vh; overflow-y:auto;
+  background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px;
+  display:flex; flex-direction:column; gap:14px; box-shadow:0 14px 30px rgba(0,0,0,.16); z-index:11;
+  opacity:0; pointer-events:none; transform:translateY(6px); transition:opacity .2s, transform .2s;
+}
+.settings-group{display:flex; flex-direction:column; gap:6px;}
+.settings-label{font-size:.72rem; color:var(--muted);}
+.settings-panel .nav, .settings-panel .face-picker{width:100%; flex-wrap:wrap; justify-content:flex-start;}
+.settings-panel .nav button{padding:7px 12px; font-size:.82rem;}
+.settings-panel .face-picker button{padding:6px 12px; font-size:.76rem;}
+.settings-panel.open{opacity:1; pointer-events:auto; transform:translateY(0);}
+.settings-row{display:flex; align-items:center; justify-content:space-between; font-size:.85rem; color:var(--muted);}
+.settings-row input[type=color]{width:38px; height:30px; border:none; border-radius:8px; background:none; cursor:pointer; padding:0;}
+.settings-reset{padding:9px 0; font-size:.8rem; width:100%; border:1px solid var(--border); border-radius:999px; background:var(--bg); color:var(--text); cursor:pointer;}
+.settings-hint{font-size:.72rem; color:var(--muted); line-height:1.4; margin:-4px 0 0;}
+
+.switch{position:relative; display:inline-block; width:40px; height:22px; flex:none;}
+.switch input{opacity:0; width:0; height:0; position:absolute;}
+.switch .track{position:absolute; inset:0; background:var(--border); border-radius:999px; transition:background .2s; cursor:pointer;}
+.switch .thumb{position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--panel); box-shadow:0 1px 3px rgba(0,0,0,.3); transition:transform .2s;}
+.switch input:checked + .track{background:var(--accent);}
+.switch input:checked + .track .thumb{transform:translateX(18px);}
+.switch input:disabled + .track{opacity:.4; cursor:default;}
+
+.wrap{
+  min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:36px 20px; gap:40px; position:relative; overflow:hidden;
+}
+.wrap::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(circle at 50% 36%, var(--accent-soft), transparent 62%);
+  transform-origin:50% 36%;
+  animation:breathe 12s ease-in-out infinite;
+}
+@keyframes breathe{
+  0%{transform:scale(1);}
+  33.333%{transform:scale(1.22);}
+  100%{transform:scale(1);}
+}
+
+.bubbles{position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0;}
+.bubbles span{
+  position:absolute; bottom:-10%; border-radius:50%;
+  background:var(--accent-soft); filter:blur(.5px);
+  animation:float linear infinite;
+}
+@keyframes float{
+  0%{transform:translateY(0) scale(1); opacity:0;}
+  12%{opacity:.9;}
+  85%{opacity:.4;}
+  100%{transform:translateY(-115vh) scale(1.2); opacity:0;}
+}
+.bubbles span:nth-child(1){left:6%; width:16px; height:16px; animation-duration:15s; animation-delay:0s;}
+.bubbles span:nth-child(2){left:18%; width:9px; height:9px; animation-duration:10s; animation-delay:2.2s;}
+.bubbles span:nth-child(3){left:32%; width:24px; height:24px; animation-duration:19s; animation-delay:4.5s;}
+.bubbles span:nth-child(4){left:48%; width:13px; height:13px; animation-duration:12s; animation-delay:1s;}
+.bubbles span:nth-child(5){left:62%; width:19px; height:19px; animation-duration:17s; animation-delay:6.5s;}
+.bubbles span:nth-child(6){left:74%; width:11px; height:11px; animation-duration:9s; animation-delay:3.3s;}
+.bubbles span:nth-child(7){left:86%; width:21px; height:21px; animation-duration:21s; animation-delay:5.2s;}
+.bubbles span:nth-child(8){left:42%; width:7px; height:7px; animation-duration:11s; animation-delay:7.6s;}
+.bubbles span:nth-child(9){left:94%; width:14px; height:14px; animation-duration:13.5s; animation-delay:8.8s;}
+
+.nav{
+  display:flex; gap:4px; background:var(--panel); border:1px solid var(--border);
+  padding:5px; border-radius:999px; position:relative; z-index:1;
+}
+.nav button{
+  border:none; background:transparent; color:var(--muted); font-size:.95rem;
+  padding:9px 20px; border-radius:999px; cursor:pointer; transition:background .25s, color .25s;
+}
+.nav button.active{background:var(--accent); color:var(--bg);}
+
+.view{display:none; flex-direction:column; align-items:center; gap:26px; z-index:1; width:100%;}
+.view.active{display:flex; animation:rise .35s ease;}
+@keyframes rise{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+.face-picker{display:flex; flex-wrap:wrap; justify-content:center; gap:8px;}
+.face-picker button{
+  border:1px solid var(--border); background:var(--panel); color:var(--muted);
+  font-size:.78rem; padding:7px 14px; border-radius:999px; cursor:pointer; transition:background .2s, color .2s;
+}
+.face-picker button.active{background:var(--accent); color:var(--bg); border-color:transparent;}
+
+.clock-face{display:flex; flex-direction:column; align-items:center;}
+.clock-time{font-size:clamp(3rem,15vw,7.5rem); font-weight:600; font-variant-numeric:tabular-nums; line-height:1;}
+.clock-date{font-size:clamp(1rem,3vw,1.25rem); color:var(--muted); font-weight:400;}
+
+.analog-svg{width:min(58vw,250px); height:min(58vw,250px); display:none;}
+.clock-face[data-face="analog-classic"] .clock-time{display:none;}
+.clock-face[data-face="analog-classic"] .analog-svg{display:block;}
+.af-ring{fill:none; stroke:var(--text); stroke-width:2; opacity:.85;}
+.tick-major{stroke:var(--text); stroke-width:2;}
+.tick-minor{stroke:var(--muted); stroke-width:1;}
+.af-num{fill:var(--muted); font-size:13px; font-family:'Outfit',sans-serif;}
+.af-hand{stroke:var(--text); stroke-linecap:round;}
+.af-hour{stroke-width:5;}
+.af-minute{stroke-width:3.5;}
+.af-second{stroke:var(--accent); stroke-width:1.6;}
+.af-pin{fill:var(--accent);}
+
+.big-display{font-size:clamp(2.75rem,13vw,6rem); font-weight:600; font-variant-numeric:tabular-nums; line-height:1; transition:color .2s;}
+.big-display.ringing{animation:pulse 1s ease-in-out infinite; color:var(--accent);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+.adjust-row{display:flex; align-items:center; gap:32px;}
+.adjust-group{display:flex; flex-direction:column; align-items:center; gap:8px;}
+.adjust-group span{font-size:.8rem; color:var(--muted);}
+.step-btns{display:flex; gap:10px;}
+.step-btn{
+  width:38px; height:38px; border-radius:50%; border:1px solid var(--border);
+  background:var(--panel); color:var(--text); font-size:1.15rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.step-btn:disabled{opacity:.3; cursor:default;}
+
+.controls{display:flex; gap:14px;}
+.btn{
+  padding:12px 30px; border-radius:999px; border:1px solid var(--border);
+  background:var(--panel); color:var(--text); font-size:1rem; cursor:pointer; transition:transform .15s;
+}
+.btn:active{transform:scale(.96);}
+.btn.primary{background:var(--accent); color:var(--bg); border-color:transparent;}
+
+.laps{list-style:none; padding:0; margin:0; width:100%; max-width:280px; display:flex; flex-direction:column; gap:6px; max-height:170px; overflow-y:auto;}
+.laps li{display:flex; justify-content:space-between; padding:8px 14px; background:var(--panel); border:1px solid var(--border); border-radius:12px; font-size:.88rem; font-variant-numeric:tabular-nums;}
+.laps li span:first-child{color:var(--muted);}
+
+.wake-status{display:none !important;}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+<canvas id="starfield" aria-hidden="true"></canvas>
+
+<div class="top-controls">
+  <button id="themeToggle" class="icon-btn" aria-label="Przełącz tryb dzień/noc">
+    <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+    <svg class="icon-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.6 6.6 0 0 0 10.5 10.5z"/></svg>
+  </button>
+  <button id="settingsToggle" class="icon-btn" aria-label="Ustawienia wyglądu">
+    <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="18" r="2"/></svg>
+  </button>
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-group">
+    <span class="settings-label">Widok</span>
+    <nav class="nav" id="nav">
+      <button class="active" data-view="clock">Zegar</button>
+      <button data-view="timer">Minutnik</button>
+      <button data-view="stopwatch">Stoper</button>
+    </nav>
+  </div>
+  <div class="settings-group" id="faceGroup">
+    <span class="settings-label">Tarcza</span>
+    <div class="face-picker" id="facePicker">
+      <button data-face="digital-minimal" class="active">Cyfry</button>
+      <button data-face="analog-classic">Klasyczny</button>
+    </div>
+  </div>
+  <div class="settings-row"><label for="bgColorInput">Kolor tła</label><input type="color" id="bgColorInput"></div>
+  <div class="settings-row"><label for="textColorInput">Kolor napisów</label><input type="color" id="textColorInput"></div>
+  <button class="settings-reset" id="resetColors">Domyślne kolory motywu</button>
+  <div class="settings-row">
+    <span>Bąbelki</span>
+    <label class="switch"><input type="checkbox" id="bubblesToggle" aria-label="Bąbelki"><span class="track"><span class="thumb"></span></span></label>
+  </div>
+  <div class="settings-row">
+    <span>Podróż w gwiazdach</span>
+    <label class="switch"><input type="checkbox" id="starfieldToggle" aria-label="Podróż w gwiazdach"><span class="track"><span class="thumb"></span></span></label>
+  </div>
+  <p class="settings-hint" id="motionHint" hidden>Animacje wyłączone zgodnie z ustawieniami systemu.</p>
+</div>
+
+<div class="wrap">
+  <div class="bubbles" id="bubbles" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <section id="clock" class="view active">
+    <div class="clock-face" id="clockFace" data-face="digital-minimal">
+      <div class="clock-time" id="clockTime">00:00:00</div>
+      <svg id="analogFace" class="analog-svg" viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="af-ring" cx="100" cy="100" r="94"/>
+        <g id="afTicks"></g>
+        <g id="afNumerals"></g>
+        <line id="afHour" class="af-hand af-hour" x1="100" y1="100" x2="100" y2="58"/>
+        <line id="afMinute" class="af-hand af-minute" x1="100" y1="100" x2="100" y2="34"/>
+        <line id="afSecond" class="af-hand af-second" x1="100" y1="100" x2="100" y2="26"/>
+        <circle class="af-pin" cx="100" cy="100" r="3.4"/>
+      </svg>
+    </div>
+    <div class="clock-date" id="clockDate"></div>
+  </section>
+
+  <section id="timer" class="view">
+    <div class="big-display" id="timerDisplay">05:00</div>
+    <div class="adjust-row">
+      <div class="adjust-group">
+        <div class="step-btns">
+          <button class="step-btn" id="minMinus" aria-label="Minus minuta">−</button>
+          <button class="step-btn" id="minPlus" aria-label="Plus minuta">+</button>
+        </div>
+        <span>minuty</span>
+      </div>
+      <div class="adjust-group">
+        <div class="step-btns">
+          <button class="step-btn" id="secMinus" aria-label="Minus 10 sekund">−</button>
+          <button class="step-btn" id="secPlus" aria-label="Plus 10 sekund">+</button>
+        </div>
+        <span>sekundy</span>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn primary" id="timerStart">Start</button>
+      <button class="btn" id="timerReset">Resetuj</button>
+    </div>
+  </section>
+
+  <section id="stopwatch" class="view">
+    <div class="big-display" id="swDisplay">00:00.00</div>
+    <div class="controls">
+      <button class="btn primary" id="swStart">Start</button>
+      <button class="btn" id="swLap">Okrążenie</button>
+      <button class="btn" id="swReset">Resetuj</button>
+    </div>
+    <ul class="laps" id="swLaps"></ul>
+  </section>
+
+  <div class="wake-status" id="wakeStatus"></div>
+</div>
+
+<script>
+const pad = n => n.toString().padStart(2,'0');
+const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* --- motyw --- */
+function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
+let savedTheme = null;
+try{ savedTheme = localStorage.getItem('zegar-theme'); }catch(e){}
+applyTheme(savedTheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try{ localStorage.setItem('zegar-theme', next); }catch(e){}
+});
+
+/* --- niestandardowe kolory --- */
+try{
+  const cb = localStorage.getItem('zegar-bg'), ct = localStorage.getItem('zegar-text');
+  if(cb) document.documentElement.style.setProperty('--bg', cb);
+  if(ct) document.documentElement.style.setProperty('--text', ct);
+}catch(e){}
+
+const settingsBtn = document.getElementById('settingsToggle');
+const settingsPanel = document.getElementById('settingsPanel');
+settingsBtn.addEventListener('click', () => settingsPanel.classList.toggle('open'));
+document.addEventListener('click', e => {
+  if(!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) settingsPanel.classList.remove('open');
+});
+
+const bgInput = document.getElementById('bgColorInput');
+const textInput = document.getElementById('textColorInput');
+function rgbToHex(str){
+  if(str.startsWith('#')) return str;
+  const m = str.match(/\d+/g);
+  if(!m) return '#000000';
+  return '#' + m.slice(0,3).map(n => (+n).toString(16).padStart(2,'0')).join('');
+}
+function syncColorInputs(){
+  bgInput.value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+  textInput.value = rgbToHex(getComputedStyle(document.documentElement).getPropertyValue('--text').trim());
+}
+syncColorInputs();
+bgInput.addEventListener('input', () => {
+  document.documentElement.style.setProperty('--bg', bgInput.value);
+  try{ localStorage.setItem('zegar-bg', bgInput.value); }catch(e){}
+});
+textInput.addEventListener('input', () => {
+  document.documentElement.style.setProperty('--text', textInput.value);
+  try{ localStorage.setItem('zegar-text', textInput.value); }catch(e){}
+});
+document.getElementById('resetColors').addEventListener('click', () => {
+  document.documentElement.style.removeProperty('--bg');
+  document.documentElement.style.removeProperty('--text');
+  try{ localStorage.removeItem('zegar-bg'); localStorage.removeItem('zegar-text'); }catch(e){}
+  syncColorInputs();
+});
+
+/* --- bąbelki --- */
+const bubblesEl = document.getElementById('bubbles');
+const bubblesToggle = document.getElementById('bubblesToggle');
+function setBubbles(on){
+  bubblesEl.style.display = on ? 'block' : 'none';
+  bubblesToggle.checked = on;
+  try{ localStorage.setItem('zegar-bubbles', on ? '1' : '0'); }catch(e){}
+}
+bubblesToggle.addEventListener('change', () => setBubbles(bubblesToggle.checked));
+let savedBubbles = null;
+try{ savedBubbles = localStorage.getItem('zegar-bubbles'); }catch(e){}
+setBubbles(reduceMotion ? false : (savedBubbles === null ? true : savedBubbles === '1'));
+
+/* --- podróż w gwiazdach --- */
+const starCanvas = document.getElementById('starfield');
+const sctx = starCanvas.getContext('2d');
+const starfieldToggle = document.getElementById('starfieldToggle');
+const STAR_COUNT = 260;
+let stars = [], starfieldOn = false, starfieldRAF = null;
+
+function resizeCanvas(){
+  starCanvas.width = window.innerWidth;
+  starCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function initStars(){
+  stars = Array.from({length:STAR_COUNT}, () => ({x:Math.random()*2-1, y:Math.random()*2-1, z:Math.random()}));
+}
+function drawFrame(){
+  const w = starCanvas.width, h = starCanvas.height, cx = w/2, cy = h/2;
+  sctx.clearRect(0,0,w,h);
+  const color = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || '#ffffff';
+  sctx.strokeStyle = color;
+  const speed = 0.0025;
+  for(const s of stars){
+    const prevZ = s.z;
+    s.z -= speed;
+    if(s.z <= 0.002){ s.x = Math.random()*2-1; s.y = Math.random()*2-1; s.z = 1; continue; }
+    const sx = cx + (s.x / s.z) * cx, sy = cy + (s.y / s.z) * cy;
+    const psx = cx + (s.x / prevZ) * cx, psy = cy + (s.y / prevZ) * cy;
+    sctx.globalAlpha = Math.min(1, (1 - s.z) * 1.3);
+    sctx.lineWidth = Math.max(0.6, (1 - s.z) * 2.4);
+    sctx.beginPath();
+    sctx.moveTo(psx, psy);
+    sctx.lineTo(sx, sy);
+    sctx.stroke();
+  }
+  sctx.globalAlpha = 1;
+  if(starfieldOn) starfieldRAF = requestAnimationFrame(drawFrame);
+}
+function setStarfield(on){
+  if(reduceMotion) on = false;
+  starfieldOn = on;
+  starfieldToggle.checked = on;
+  starCanvas.style.display = on ? 'block' : 'none';
+  cancelAnimationFrame(starfieldRAF);
+  if(on){
+    if(!stars.length) initStars();
+    drawFrame();
+  }
+  try{ localStorage.setItem('zegar-starfield', on ? '1' : '0'); }catch(e){}
+}
+starfieldToggle.addEventListener('change', () => setStarfield(starfieldToggle.checked));
+let savedStarfield = null;
+try{ savedStarfield = localStorage.getItem('zegar-starfield'); }catch(e){}
+setStarfield(savedStarfield === '1');
+
+if(reduceMotion){
+  bubblesToggle.disabled = true;
+  starfieldToggle.disabled = true;
+  document.getElementById('motionHint').hidden = false;
+}
+
+/* --- nawigacja --- */
+const navBtns = document.querySelectorAll('.nav button');
+const faceGroup = document.getElementById('faceGroup');
+navBtns.forEach(btn => btn.addEventListener('click', () => {
+  navBtns.forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.view).classList.add('active');
+  faceGroup.style.display = btn.dataset.view === 'clock' ? 'flex' : 'none';
+}));
+
+/* --- tarcze zegara --- */
+const clockFaceEl = document.getElementById('clockFace');
+const faceBtns = document.querySelectorAll('.face-picker button');
+const validFaces = ['digital-minimal','analog-classic'];
+function setFace(face){
+  clockFaceEl.dataset.face = face;
+  faceBtns.forEach(b => b.classList.toggle('active', b.dataset.face === face));
+  try{ localStorage.setItem('zegar-face', face); }catch(e){}
+}
+faceBtns.forEach(b => b.addEventListener('click', () => setFace(b.dataset.face)));
+let savedFace = null;
+try{ savedFace = localStorage.getItem('zegar-face'); }catch(e){}
+setFace(validFaces.includes(savedFace) ? savedFace : 'digital-minimal');
+
+function buildAnalogFace(){
+  const ticksG = document.getElementById('afTicks');
+  const numsG = document.getElementById('afNumerals');
+  for(let i=0;i<60;i++){
+    const angle = i*6*Math.PI/180;
+    const major = i%5===0;
+    const rOuter = 94, rInner = major?82:88;
+    const x1 = 100+rOuter*Math.sin(angle), y1 = 100-rOuter*Math.cos(angle);
+    const x2 = 100+rInner*Math.sin(angle), y2 = 100-rInner*Math.cos(angle);
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1); line.setAttribute('y1',y1); line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+    line.setAttribute('class', major?'tick-major':'tick-minor');
+    ticksG.appendChild(line);
+  }
+  for(let n=1;n<=12;n++){
+    const angle = n*30*Math.PI/180, r=70;
+    const x = 100+r*Math.sin(angle), y = 100-r*Math.cos(angle);
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',x); t.setAttribute('y',y+4.5); t.setAttribute('text-anchor','middle');
+    t.setAttribute('class','af-num'); t.textContent = n;
+    numsG.appendChild(t);
+  }
+}
+buildAnalogFace();
+function updateAnalog(now){
+  const h = now.getHours()%12, m = now.getMinutes(), s = now.getSeconds();
+  document.getElementById('afHour').setAttribute('transform', `rotate(${h*30+m*0.5} 100 100)`);
+  document.getElementById('afMinute').setAttribute('transform', `rotate(${m*6+s*0.1} 100 100)`);
+  document.getElementById('afSecond').setAttribute('transform', `rotate(${s*6} 100 100)`);
+}
+
+/* --- zegar --- */
+function updateClock(){
+  const now = new Date();
+  document.getElementById('clockTime').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  document.getElementById('clockDate').textContent = capFirst(now.toLocaleDateString('pl-PL',{weekday:'long', day:'numeric', month:'long'}));
+  updateAnalog(now);
+}
+updateClock(); setInterval(updateClock, 1000);
+
+/* --- dźwięk --- */
+function beep(times=3){
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if(!Ctx) return;
+  const ctx = new Ctx();
+  for(let i=0;i<times;i++){
+    setTimeout(() => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sine'; o.frequency.value=880;
+      g.gain.setValueAtTime(0.001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.45);
+      o.start(); o.stop(ctx.currentTime+0.45);
+    }, i*550);
+  }
+  if(navigator.vibrate) navigator.vibrate([200,100,200]);
+}
+
+/* --- minutnik --- */
+let timerTotal = 300, timerRemaining = 300, timerInterval = null, timerRunning = false;
+const timerDisplay = document.getElementById('timerDisplay');
+const timerStartBtn = document.getElementById('timerStart');
+const stepBtns = [document.getElementById('minMinus'),document.getElementById('minPlus'),document.getElementById('secMinus'),document.getElementById('secPlus')];
+function renderTimer(){
+  const m = Math.floor(timerRemaining/60), s = timerRemaining%60;
+  timerDisplay.textContent = `${pad(m)}:${pad(s)}`;
+}
+function adjustTimer(delta){
+  if(timerRunning) return;
+  timerTotal = Math.max(0, Math.min(99*60+59, timerTotal+delta));
+  timerRemaining = timerTotal;
+  renderTimer();
+}
+document.getElementById('minMinus').addEventListener('click', () => adjustTimer(-60));
+document.getElementById('minPlus').addEventListener('click', () => adjustTimer(60));
+document.getElementById('secMinus').addEventListener('click', () => adjustTimer(-10));
+document.getElementById('secPlus').addEventListener('click', () => adjustTimer(10));
+function timerFinish(){
+  clearInterval(timerInterval); timerRunning = false;
+  timerStartBtn.textContent = 'Start';
+  stepBtns.forEach(b => b.disabled = false);
+  timerDisplay.classList.add('ringing');
+  beep(3);
+  setTimeout(() => {
+    timerDisplay.classList.remove('ringing');
+    timerRemaining = timerTotal;
+    renderTimer();
+  }, 3500);
+}
+function toggleTimer(){
+  if(timerRunning){
+    clearInterval(timerInterval); timerRunning = false;
+    timerStartBtn.textContent = 'Start';
+    stepBtns.forEach(b => b.disabled = false);
+  } else {
+    if(timerRemaining <= 0) timerRemaining = timerTotal;
+    if(timerRemaining <= 0) return;
+    timerRunning = true;
+    timerStartBtn.textContent = 'Pauza';
+    stepBtns.forEach(b => b.disabled = true);
+    timerInterval = setInterval(() => {
+      timerRemaining--;
+      renderTimer();
+      if(timerRemaining <= 0) timerFinish();
+    }, 1000);
+  }
+}
+timerStartBtn.addEventListener('click', toggleTimer);
+document.getElementById('timerReset').addEventListener('click', () => {
+  clearInterval(timerInterval); timerRunning = false;
+  timerStartBtn.textContent = 'Start';
+  stepBtns.forEach(b => b.disabled = false);
+  timerDisplay.classList.remove('ringing');
+  timerRemaining = timerTotal;
+  renderTimer();
+});
+renderTimer();
+
+/* --- stoper --- */
+let swElapsed = 0, swStartTime = null, swRunning = false, swRAF = null, swLaps = [];
+const swDisplay = document.getElementById('swDisplay');
+const swStartBtn = document.getElementById('swStart');
+function formatSW(ms){
+  const totalCs = Math.floor(ms/10);
+  const cs = totalCs%100, totalSec = Math.floor(totalCs/100);
+  return `${pad(Math.floor(totalSec/60))}:${pad(totalSec%60)}.${pad(cs)}`;
+}
+function swTick(){
+  swDisplay.textContent = formatSW(swElapsed + (Date.now()-swStartTime));
+  swRAF = requestAnimationFrame(swTick);
+}
+function toggleSW(){
+  if(swRunning){
+    swElapsed += Date.now()-swStartTime;
+    swRunning = false;
+    cancelAnimationFrame(swRAF);
+    swStartBtn.textContent = 'Start';
+  } else {
+    swStartTime = Date.now();
+    swRunning = true;
+    swStartBtn.textContent = 'Pauza';
+    swTick();
+  }
+}
+function renderLaps(){
+  document.getElementById('swLaps').innerHTML = swLaps.map((t,i) =>
+    `<li><span>Okrążenie ${swLaps.length-i}</span><span>${formatSW(t)}</span></li>`).join('');
+}
+swStartBtn.addEventListener('click', toggleSW);
+document.getElementById('swLap').addEventListener('click', () => {
+  if(!swRunning) return;
+  swLaps.unshift(swElapsed + (Date.now()-swStartTime));
+  renderLaps();
+});
+document.getElementById('swReset').addEventListener('click', () => {
+  cancelAnimationFrame(swRAF);
+  swRunning = false; swElapsed = 0; swStartTime = null; swLaps = [];
+  swStartBtn.textContent = 'Start';
+  swDisplay.textContent = '00:00.00';
+  renderLaps();
+});
+
+/* --- blokada wygaszania ekranu --- */
+let wakeLock = null;
+const wakeStatus = document.getElementById('wakeStatus');
+function setWakeStatus(active){
+  if(active){
+    wakeStatus.textContent = '';
+    wakeStatus.classList.add('on');
+  } else {
+    wakeStatus.classList.remove('on');
+  }
+}
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      wakeLock = await navigator.wakeLock.request('screen');
+      setWakeStatus(true);
+      wakeLock.addEventListener('release', () => setWakeStatus(false));
+    } else {
+      setWakeStatus(false);
+    }
+  }catch(e){ setWakeStatus(false); }
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') requestWakeLock(); });
+requestWakeLock();
+
+/* --- pełny ekran na podwójne kliknięcie / stuknięcie --- */
+let lastFSToggle = 0;
+function toggleFullscreen(){
+  lastFSToggle = Date.now();
+  try{
+    if(document.fullscreenElement || document.webkitFullscreenElement){
+      if(document.exitFullscreen) return document.exitFullscreen().catch(()=>{});
+      if(document.webkitExitFullscreen) return document.webkitExitFullscreen();
+    } else {
+      const el = document.documentElement;
+      if(el.requestFullscreen) return el.requestFullscreen().catch(()=>{});
+      if(el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+    }
+  }catch(e){}
+}
+function isInteractiveTarget(t){
+  return t && t.closest && t.closest('button, input, a, select, textarea, .settings-panel, .top-controls');
+}
+document.addEventListener('dblclick', e => {
+  if(isInteractiveTarget(e.target)) return;
+  if(Date.now() - lastFSToggle < 600) return;
+  e.preventDefault();
+  toggleFullscreen();
+});
+let lastTapTime = 0;
+document.addEventListener('touchend', e => {
+  if(isInteractiveTarget(e.target)) return;
+  const now = Date.now();
+  if(now - lastTapTime < 350){
+    lastTapTime = 0;
+    e.preventDefault();
+    toggleFullscreen();
+  } else {
+    lastTapTime = now;
+  }
+}, {passive:false});
+</script>
+</body>
+</html>

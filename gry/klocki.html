@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Klocuchy</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --board-bg: #1e1e24;
+            --cell-empty: #2a2a35;
+            --cell-filled: #4ecca3;
+            --cell-ghost: rgba(78, 204, 163, 0.2);
+            --text-color: #eeeeee;
+            --gap: 4px;
+            --cell-size: 40px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0; overflow: hidden; touch-action: none;
+        }
+
+        .header { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        .score-box { font-size: 2.5rem; font-weight: 800; color: var(--cell-filled); line-height: 1; }
+        .sub-text { font-size: 0.8rem; opacity: 0.5; letter-spacing: 2px; margin-top: 5px; }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(9, var(--cell-size));
+            grid-template-rows: repeat(9, var(--cell-size));
+            gap: var(--gap);
+            background-color: #000;
+            padding: 8px; border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .cell {
+            width: 100%; height: 100%;
+            background-color: var(--cell-empty);
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .cell.filled { background-color: var(--cell-filled); box-shadow: 0 0 10px rgba(78, 204, 163, 0.4); }
+        .cell.ghost { background-color: var(--cell-ghost); border: 1px solid var(--cell-filled); box-sizing: border-box; }
+
+        .pieces-container {
+            display: flex; justify-content: center; align-items: center; 
+            gap: 25px; min-height: 160px; width: 100%; margin-top: 20px;
+        }
+
+        .draggable-piece {
+            display: grid; gap: var(--gap); cursor: grab;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            touch-action: none;
+        }
+        
+        .piece-cell { 
+            width: var(--cell-size); height: var(--cell-size); 
+            background: var(--cell-filled); border-radius: 4px; 
+        }
+
+        .actions { display: flex; gap: 15px; margin-top: 10px; }
+        .btn {
+            background: #2a2a35; border: none; color: white; padding: 12px 25px; 
+            border-radius: 50px; cursor: pointer; font-size: 0.9rem; font-weight: bold;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.2; cursor: default; }
+
+        .particle {
+            position: absolute; pointer-events: none; background: var(--cell-filled);
+            border-radius: 2px; z-index: 100;
+        }
+
+        /* MODAL KONIEC GRY */
+        #game-over {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 3000;
+        }
+
+        .share-btn {
+            background: transparent; border: 2px solid var(--cell-filled); color: var(--cell-filled);
+            margin-top: 15px;
+        }
+
+        @media (max-width: 500px) {
+            :root { --cell-size: calc((100vw - 75px) / 9); }
+            .pieces-container { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div id="score-display" class="score-box">0</div>
+        <div class="sub-text">KLOCUCHY</div>
+    </div>
+
+    <div class="game-board" id="board"></div>
+    <div class="pieces-container" id="pieces-dock"></div>
+
+    <div class="actions">
+        <button class="btn" id="undo-btn" onclick="undoMove()">↩ Cofnij</button>
+        <button class="btn" id="refresh-btn" onclick="refreshPieces()">♻ Nowe (1)</button>
+    </div>
+
+    <div id="game-over">
+        <h1 style="color:var(--cell-filled); font-size: 3rem; margin: 0;">KONIEC</h1>
+        <p id="final-score" style="font-size: 1.5rem; margin: 10px 0 30px 0;">Twój wynik: 0</p>
+        <button class="btn" onclick="location.reload()" style="background:var(--cell-filled); color: #000; padding: 20px 40px; font-size: 1.2rem;">ZAGRAJ PONOWNIE</button>
+        <button class="btn share-btn" onclick="shareScore()">📤 Udostępnij wynik</button>
+    </div>
+
+<script>
+    const BOARD_SIZE = 9;
+    let boardState = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
+    let lastState = null;
+    let score = 0;
+    let refreshesLeft = 1;
+    let isDragging = false;
+    let currentPieces = [];
+
+    const todaySeed = parseInt(new Date().toISOString().slice(0,10).replace(/-/g,""));
+    let currentSeed = todaySeed;
+    function seededRandom() {
+        currentSeed = (currentSeed * 9301 + 49297) % 233280;
+        return currentSeed / 233280;
+    }
+
+    const SHAPES = [
+        [[1]], [[1,1]], [[1,1,1]], [[1,1],[1,1]], [[1,1,1],[0,1,0]], 
+        [[1,0],[1,0],[1,1]], [[1,1,1,1]], [[1,1,1],[1,0,0],[1,0,0]], [[0,1,1],[1,1,0]],
+        [[1,1,1],[1,1,1],[1,1,1]], [[1,1,1],[1,1,1]]
+    ];
+
+    const boardEl = document.getElementById('board');
+    const dockEl = document.getElementById('pieces-dock');
+
+    function init() {
+        renderBoard();
+        spawnPieces();
+        updateUI();
+    }
+
+    function renderBoard() {
+        boardEl.innerHTML = '';
+        boardState.forEach((row, y) => {
+            row.forEach((val, x) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell' + (val ? ' filled' : '');
+                cell.dataset.coord = `${x},${y}`;
+                boardEl.appendChild(cell);
+            });
+        });
+    }
+
+    function rotateMatrix(matrix) {
+        return matrix[0].map((_, i) => matrix.map(row => row[i]).reverse());
+    }
+
+    function spawnPieces() {
+        dockEl.innerHTML = '';
+        currentPieces = [];
+        for (let i = 0; i < 3; i++) {
+            const shape = SHAPES[Math.floor(seededRandom() * SHAPES.length)];
+            currentPieces.push(shape);
+            createPieceElement(shape, i);
+        }
+        checkGameOver();
+    }
+
+    function createPieceElement(matrix, index) {
+        const piece = document.createElement('div');
+        piece.className = 'draggable-piece';
+        piece.dataset.index = index;
+        piece.style.gridTemplateColumns = `repeat(${matrix[0].length}, var(--cell-size))`;
+        
+        matrix.forEach(row => row.forEach(v => {
+            const c = document.createElement('div');
+            if(v) c.className = 'piece-cell';
+            piece.appendChild(c);
+        }));
+
+        piece.onclick = () => {
+            if (isDragging) return;
+            const rotated = rotateMatrix(currentPieces[index]);
+            currentPieces[index] = rotated;
+            piece.remove();
+            createPieceElement(rotated, index);
+            checkGameOver();
+        };
+
+        setupDrag(piece, index);
+        dockEl.appendChild(piece);
+    }
+
+    function setupDrag(el, index) {
+        let startX, startY;
+        
+        const onMove = (e) => {
+            if(!isDragging) return;
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            el.style.left = (cx - startX) + 'px';
+            el.style.top = (cy - startY) + 'px';
+
+            clearGhosts();
+            const g = getGridPos(el);
+            if(canPlace(currentPieces[index], g.x, g.y)) showGhost(currentPieces[index], g.x, g.y);
+        };
+
+        const onEnd = (e) => {
+            if(!isDragging) return;
+            isDragging = false;
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('touchmove', onMove);
+            clearGhosts();
+
+            const g = getGridPos(el);
+            if(canPlace(currentPieces[index], g.x, g.y)) {
+                saveState();
+                placePiece(currentPieces[index], g.x, g.y);
+                el.remove();
+                currentPieces[index] = null;
+                checkLogic();
+            } else {
+                el.style.position = 'static';
+                el.style.zIndex = 'auto';
+            }
+        };
+
+        el.onmousedown = el.ontouchstart = (e) => {
+            isDragging = true;
+            const rect = el.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            startX = cx - rect.left;
+            startY = cy - rect.top;
+            el.style.position = 'fixed';
+            el.style.zIndex = 2000;
+            el.style.width = rect.width + 'px';
+            onMove(e);
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('touchmove', onMove, {passive:false});
+            document.addEventListener('mouseup', onEnd, {once:true});
+            document.addEventListener('touchend', onEnd, {once:true});
+        };
+    }
+
+    function getGridPos(el) {
+        const b = boardEl.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        const cs = (b.width - 16) / 9; // 16 to padding
+        return {
+            x: Math.round((r.left - b.left - 8) / cs),
+            y: Math.round((r.top - b.top - 8) / cs)
+        };
+    }
+
+    function canPlace(m, sx, sy) {
+        if(!m) return false;
+        let ok = true;
+        m.forEach((row, y) => row.forEach((v, x) => {
+            if(v) {
+                const bx = sx + x, by = sy + y;
+                if(bx < 0 || bx >= 9 || by < 0 || by >= 9 || boardState[by][bx]) ok = false;
+            }
+        }));
+        return ok;
+    }
+
+    function placePiece(m, sx, sy) {
+        m.forEach((row, y) => row.forEach((v, x) => {
+            if(v) boardState[sy+y][sx+x] = 1;
+        }));
+        renderBoard();
+        score += m.flat().filter(v => v).length;
+        updateUI();
+    }
+
+    function checkLogic() {
+        let toClear = new Set();
+        // Sprawdź linie pionowe i poziome
+        for(let i=0; i<9; i++) {
+            if(boardState[i].every(v => v)) for(let x=0; x<9; x++) toClear.add(`${x},${i}`);
+            if(boardState.every(r => r[i])) for(let y=0; y<9; y++) toClear.add(`${i},${y}`);
+        }
+        // Sprawdź kwadraty 3x3
+        for(let r=0; r<3; r++) {
+            for(let c=0; c<3; c++) {
+                let full = true;
+                for(let y=r*3; y<r*3+3; y++) {
+                    for(let x=c*3; x<c*3+3; x++) if(!boardState[y][x]) full = false;
+                }
+                if(full) {
+                    for(let y=r*3; y<r*3+3; y++) {
+                        for(let x=c*3; x<c*3+3; x++) toClear.add(`${x},${y}`);
+                    }
+                }
+            }
+        }
+
+        if(toClear.size > 0) {
+            toClear.forEach(coord => {
+                const [x,y] = coord.split(',').map(Number);
+                createParticles(x, y);
+                boardState[y][x] = 0;
+            });
+            score += toClear.size * 2;
+            setTimeout(renderBoard, 250);
+        }
+        
+        if(currentPieces.every(p => p === null)) spawnPieces();
+        else checkGameOver();
+        
+        updateUI();
+    }
+
+    function checkGameOver() {
+        let possible = false;
+        currentPieces.forEach(matrix => {
+            if(!matrix) return;
+            for(let y = 0; y < 9; y++) {
+                for(let x = 0; x < 9; x++) {
+                    if(canPlace(matrix, x, y)) { possible = true; break; }
+                }
+                if(possible) break;
+            }
+        });
+
+        if(!possible) {
+            setTimeout(() => {
+                document.getElementById('final-score').innerText = `Twój wynik: ${score}`;
+                document.getElementById('game-over').style.display = 'flex';
+            }, 500);
+        }
+    }
+
+    function saveState() { 
+        lastState = JSON.stringify({b: boardState, s: score, p: JSON.parse(JSON.stringify(currentPieces))}); 
+    }
+    
+    function undoMove() {
+        if(!lastState) return;
+        const data = JSON.parse(lastState);
+        boardState = data.b; score = data.s; currentPieces = data.p;
+        lastState = null;
+        renderBoard();
+        dockEl.innerHTML = '';
+        currentPieces.forEach((m, i) => { if(m) createPieceElement(m, i); });
+        updateUI();
+    }
+
+    function refreshPieces() {
+        if(refreshesLeft > 0) { spawnPieces(); refreshesLeft--; updateUI(); }
+    }
+
+    function shareScore() {
+        const gameUrl = window.location.href;
+        const text = `Klocuchy 🧩\nZdobylem ${score} punktów! Poczuj ten miętowy flow i spróbuj mnie pobić:\n${gameUrl}`;
+        
+        if (navigator.share) {
+            navigator.share({ title: 'Block Master', text: text, url: gameUrl });
+        } else {
+            navigator.clipboard.writeText(text);
+            alert("Wynik i link do gry skopiowane do schowka!");
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('score-display').innerText = score;
+        document.getElementById('undo-btn').disabled = !lastState;
+        document.getElementById('refresh-btn').innerText = `♻ Nowe (${refreshesLeft})`;
+        document.getElementById('refresh-btn').disabled = refreshesLeft <= 0;
+    }
+
+    function createParticles(x, y) {
+        const b = boardEl.getBoundingClientRect();
+        const cs = (b.width - 16) / 9;
+        for(let i=0; i<6; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.width = p.style.height = Math.random() * 6 + 2 + 'px';
+            p.style.left = b.left + 8 + (x * cs) + cs/2 + 'px';
+            p.style.top = b.top + 8 + (y * cs) + cs/2 + 'px';
+            document.body.appendChild(p);
+            const a = Math.random() * Math.PI * 2;
+            const d = Math.random() * 60 + 20;
+            p.animate([
+                { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                { transform: `translate(${Math.cos(a)*d}px, ${Math.sin(a)*d}px) scale(0)`, opacity: 0 }
+            ], { duration: 600, easing: 'ease-out' }).onfinish = () => p.remove();
+        }
+    }
+
+    function showGhost(m, sx, sy) {
+        m.forEach((row, y) => row.forEach((v, x) => {
+            if(v) {
+                const el = document.querySelector(`[data-coord="${sx+x},${sy+y}"]`);
+                if(el) el.classList.add('ghost');
+            }
+        }));
+    }
+    function clearGhosts() { document.querySelectorAll('.cell.ghost').forEach(c => c.classList.remove('ghost')); }
+
+    init();
+</script>
+</body>
+</html>
