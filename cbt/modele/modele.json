@@ -1,0 +1,539 @@
+[
+  {
+    "id": "clark_panic_1986",
+    "title": "Poznawczy model paniki (Clark, 1986; Wells, 1997)",
+    "category": "Lęk / Panika",
+    "description": "Błędne koło paniki wynikające z katastroficznej interpretacji łagodnych lub fizjologicznych doznań z ciała.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Czynnik wyzwalający", "patientText": "Wewnętrzny (np. przyspieszone tętno) lub zewnętrzny bodziec", "x": 0, "y": -220 },
+      { "id": 2, "type": "thought", "label": "Spostrzegane zagrożenie", "patientText": "Coś złego dzieje się z moim organizmem", "x": 0, "y": -120 },
+      { "id": 3, "type": "emotion", "label": "Lęk / Przerażenie", "patientText": "Narastający niepokój i uczucie utraty kontroli", "x": 0, "y": -20 },
+      { "id": 4, "type": "physiology", "label": "Objawy somatyczne i poznawcze", "patientText": "Kołatanie serca, zawroty głowy, duszność", "x": 200, "y": 80 },
+      { "id": 5, "type": "thought", "label": "Błędna katastroficzna interpretacja", "patientText": "Zaraz dostanę zawału lub zemdleję!", "x": 0, "y": 180 },
+      { "id": 6, "type": "behavior", "label": "Unikanie i zachowania zabezpieczające", "patientText": "Mierzenie tętna, ucieczka ze sklepu, siadanie na ziemi", "x": -200, "y": 80 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "WYWOŁUJE", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "NASILA DOZNANIA", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "INTERPRETUJE JAKO", "type": "NASILA" },
+      { "from": 5, "to": 3, "label": "WZMACNIA LĘK", "type": "NASILA" },
+      { "from": 6, "to": 5, "label": "BRAK FALSYFIKACJI", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "beck_depression_1976",
+    "title": "Model depresji (Beck, 1967, 1976)",
+    "category": "Depresja",
+    "description": "Klasyczny model depresji oparty na wczesnych doświadczeniach, aktywacji negatywnych przekonań oraz triadzie poznawczej.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Wczesne doświadczenia życiowe", "patientText": "Odrzucenie w dzieciństwie, wysokie wymagania rodziców", "x": 0, "y": -250 },
+      { "id": 2, "type": "vulnerability", "label": "Przekonania kluczowe i założenia", "patientText": "Jestem niewystarczający / Muszę odnosić sukcesy", "x": 0, "y": -150 },
+      { "id": 3, "type": "trigger", "label": "Zdarzenie krytyczne", "patientText": "Utrata pracy lub trudna rozmowa z przełożonym", "x": 0, "y": -50 },
+      { "id": 4, "type": "thought", "label": "Aktywacja założeń", "patientText": "Jeśli poniosę porażkę, to znaczy że jestem do niczego", "x": 0, "y": 50 },
+      { "id": 5, "type": "thought", "label": "Negatywne myśli automatyczne", "patientText": "Nic mi się nie uda, nikt mi nie pomoże (Triada)", "x": 0, "y": 150 },
+      { "id": 6, "type": "emotion", "label": "Objawy depresji", "patientText": "Smutek, wycofanie behawioralne, zmęczenie somatyczne", "x": 0, "y": 260 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "KSZTAŁTUJE", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "NADAJE ZNACZENIE", "type": "PODTRZYMUJE" },
+      { "from": 3, "to": 4, "label": "AKTYWUJE", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "GENERUJE", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 6, "to": 5, "label": "POTWIERDZA MYŚLI", "type": "WZAJEMNE" }
+    ]
+  },
+  {
+    "id": "boelen_grief_2006",
+    "title": "Model przedłużonej żałoby (Boelen, Hout, Bout, 2006)",
+    "category": "Żałoba",
+    "description": "Przedłużona żałoba wynikająca z braku integracji straty z pamięcią autobiograficzną oraz negatywnych przekonań.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Indywidualne czynniki podatności", "patientText": "Wcześniejsze zaburzenia nastroju, niski poziom wsparcia", "x": -260, "y": -150 },
+      { "id": 2, "type": "trigger", "label": "Charakterystyka zdarzenia straty", "patientText": "Niespodziewana lub gwałtowna śmierć bliskiej osoby", "x": -260, "y": 0 },
+      { "id": 3, "type": "consequence", "label": "Charakterystyka następstw straty", "patientText": "Utrata dochodu, zmiana roli życiowej, samotność", "x": -260, "y": 150 },
+      { "id": 4, "type": "thought", "label": "Niedostateczna integracja straty z wiedzą autobiograficzną", "patientText": "Poczucie nierealności zdarzenia", "x": 0, "y": -120 },
+      { "id": 5, "type": "thought", "label": "Negatywne przekonania i interpretacja objawów", "patientText": "Już nigdy nie będę szczęśliwy / Moje życie się skończyło", "x": -80, "y": 80 },
+      { "id": 6, "type": "behavior", "label": "Lękowe i depresyjne strategie unikowe", "patientText": "Unikanie miejsc przypominających o zmarłym, wycofanie", "x": 120, "y": 80 },
+      { "id": 7, "type": "emotion", "label": "Przedłużona skomplikowana żałoba", "patientText": "Lęk separacyjny, tęsknota, otępienie emocjonalne", "x": 280, "y": 0 }
+    ],
+    "edges": [
+      { "from": 1, "to": 4, "label": "WPŁYWA NA", "type": "NASILA" },
+      { "from": 2, "to": 4, "label": "WYZWALA", "type": "NASILA" },
+      { "from": 3, "to": 5, "label": "WZMACNIA", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "UTRUDNIA", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "SKUTKUJE", "type": "WZAJEMNE" },
+      { "from": 6, "to": 7, "label": "PROWADZI DO", "type": "NASILA" }
+    ]
+  },
+  {
+    "id": "leahy_envy_2020",
+    "title": "Poznawczy model zawiści (Leahy, 2020)",
+    "category": "Relacje / Schematy",
+    "description": "Model zawiści oparty na schematach porównywania społecznego i postrzeganej własnej niższości.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Ewolucja i czynniki kulturowe", "patientText": "Nacisk na status, sukces, rywalizację i indywidualizm", "x": 0, "y": -220 },
+      { "id": 2, "type": "trigger", "label": "Nagrody warunkowe i porównywanie z innymi", "patientText": "Zobaczenie sukcesu lub majątku innej osoby", "x": 0, "y": -120 },
+      { "id": 3, "type": "thought", "label": "Osobiste schematy o sobie", "patientText": "Niemożność bycia kochanym, brak wartości", "x": -180, "y": -20 },
+      { "id": 4, "type": "thought", "label": "Schematy o innych", "patientText": "Inni są osądzający, uprzywilejowani i lepsi", "x": 180, "y": -20 },
+      { "id": 5, "type": "behavior", "label": "Sygnalizowanie i porównywanie społeczne", "patientText": "Ciągłe sprawdzanie osiągnięć znajomych", "x": 0, "y": 80 },
+      { "id": 6, "type": "emotion", "label": "Dewaluacja siebie lub innych", "patientText": "Złość, poczucie gorszości, krytykowanie sukcesów innych", "x": 0, "y": 180 },
+      { "id": 7, "type": "behavior", "label": "Unikanie innych", "patientText": "Izolowanie się od osób odnoszących sukcesy", "x": 0, "y": 270 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "KSZTAŁTUJE", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "AKTYWUJE", "type": "NASILA" },
+      { "from": 2, "to": 4, "label": "AKTYWUJE", "type": "NASILA" },
+      { "from": 3, "to": 5, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "GENERUJE", "type": "NASILA" },
+      { "from": 6, "to": 7, "label": "SKUTKUJE", "type": "NASILA" }
+    ]
+  },
+  {
+    "id": "hofmann_social_anxiety_2007",
+    "title": "Model czynników podtrzymujących lęk społeczny (S. Hofmann, 2007)",
+    "category": "Lęk społeczny",
+    "description": "Model wyjaśniający podtrzymywanie lęku społecznego poprzez nadmierną uwagę kierowaną na siebie i obawy przed oceną.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Wysokie standardy i słabo zdefiniowane cele", "patientText": "Muszę wypadkowo dobrze wypaść przed każdym", "x": 0, "y": -220 },
+      { "id": 2, "type": "emotion", "label": "Lęk społeczny", "patientText": "Napięcie i niepokój w grupie ludzi", "x": 0, "y": -120 },
+      { "id": 3, "type": "behavior", "label": "Nasilenie uwagi na sobie (Self-Focused Attention)", "patientText": "Monitorowanie swojego głosu i drżenia rąk", "x": 0, "y": -20 },
+      { "id": 4, "type": "thought", "label": "Negatywny obraz siebie i przewidywanie porażki", "patientText": "Wyglądam śmiesznie, zaliczę wpadkę", "x": 180, "y": 80 },
+      { "id": 5, "type": "behavior", "label": "Zachowania unikowe i zabezpieczające", "patientText": "Unikanie kontaktu wzrokowego, ściskanie dłoni", "x": 0, "y": 180 },
+      { "id": 6, "type": "thought", "label": "Ruminacje po zdarzeniu (Post-Event Processing)", "patientText": "Rozmyślanie całymi dniami o potknięciu", "x": -180, "y": 80 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "KIERUJE UWAGĘ", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "WZMACNIA OBRAZ", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "SKUTKUJE", "type": "NASILA" },
+      { "from": 6, "to": 2, "label": "PODTRZYMUJE LĘK", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "marlatt_relapse_1985",
+    "title": "Poznawczo-behawioralny model nawrotów (Marlatt, 1985)",
+    "category": "Uzależnienia",
+    "description": "Model nawrotów w uzależnieniach opisujący ścieżki efektywnego radzenia sobie oraz Efekt Złamania Abstynencji (AVE).",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Ryzykowna sytuacja", "patientText": "Spotkanie ze znajomymi w pubie / silny stres", "x": -300, "y": 0 },
+      { "id": 2, "type": "behavior", "label": "Efektywna strategia radzenia sobie", "patientText": "Asertywna odmowa, opuszczenie miejsca", "x": -100, "y": -120 },
+      { "id": 3, "type": "thought", "label": "Wzrost poczucia sprawczości", "patientText": "Mam kontrolę nad swoim życiem", "x": 100, "y": -120 },
+      { "id": 4, "type": "consequence", "label": "Zmniejszone prawdopodobieństwo nawrotu", "patientText": "Utrzymanie abstynencji", "x": 300, "y": -120 },
+      { "id": 5, "type": "behavior", "label": "Brak efektywnej strategii", "patientText": "Uleganie presji, brak planu awaryjnego", "x": -100, "y": 120 },
+      { "id": 6, "type": "thought", "label": "Spadek poczucia sprawczości i oczekiwanie ulgi", "patientText": "Nie dam rady, napiję się tylko raz", "x": 50, "y": 120 },
+      { "id": 7, "type": "behavior", "label": "Potknięcie (Pierwsze użycie)", "patientText": "Wypicie jednego kieliszka", "x": 200, "y": 120 },
+      { "id": 8, "type": "thought", "label": "Efekt Złamania Abstynencji (AVE)", "patientText": "Wszystko stracone, jestem do niczego", "x": 350, "y": 120 },
+      { "id": 9, "type": "consequence", "label": "Pełny nawrót uzależnienia", "patientText": "Ciągłe zażywanie substancji", "x": 480, "y": 120 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYBÓR OBRONY", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "BUDUJE", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "CHRONI", "type": "OSŁABIA" },
+      { "from": 1, "to": 5, "label": "BRAK REAKCJI", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "OSŁABIA KONTROLĘ", "type": "NASILA" },
+      { "from": 6, "to": 7, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 7, "to": 8, "label": "WYWOŁUJE AVE", "type": "NASILA" },
+      { "from": 8, "to": 9, "label": "SKUTKUJE", "type": "NASILA" }
+    ]
+  },
+  {
+    "id": "act_hexaflex_inflexibility",
+    "title": "Model sztywności psychologicznej Hexaflex (ACT)",
+    "category": "Trzecia Fala / ACT",
+    "description": "6 procesów psychologicznych prowadzących do braku elastyczności i cierpienia psychicznego.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Brak elastyczności psychologicznej", "patientText": "Utknięcie w cierpieniu i schematycznym działaniu", "x": 0, "y": 0 },
+      { "id": 2, "type": "behavior", "label": "Unikanie doświadczania", "patientText": "Tłumienie trudnych emocji i myśli", "x": -220, "y": -120 },
+      { "id": 3, "type": "thought", "label": "Fuzja poznawcza", "patientText": "Traktowanie myśli jako stuprocentowych faktów", "x": -220, "y": 120 },
+      { "id": 4, "type": "thought", "label": "Brak uważności / Skupienie na przeszłości lub przyszłości", "patientText": "Brak obecności w chwili obecnej", "x": 0, "y": -220 },
+      { "id": 5, "type": "thought", "label": "Przywiązanie do Ja-Konceptu", "patientText": "Jestem osobnikiem nieudolnym / Muszę być silny", "x": 0, "y": 220 },
+      { "id": 6, "type": "consequence", "label": "Brak jasności wartości", "patientText": "Działanie niezgodne z własnym sercem", "x": 220, "y": -120 },
+      { "id": 7, "type": "behavior", "label": "Bezowocne / Sztywne działanie", "patientText": "Działanie na autopilocie, rezygnacja z celów", "x": 220, "y": 120 }
+    ],
+    "edges": [
+      { "from": 2, "to": 1, "label": "ZASILA", "type": "NASILA" },
+      { "from": 3, "to": 1, "label": "ZASILA", "type": "NASILA" },
+      { "from": 4, "to": 1, "label": "ZASILA", "type": "NASILA" },
+      { "from": 5, "to": 1, "label": "ZASILA", "type": "NASILA" },
+      { "from": 6, "to": 1, "label": "ZASILA", "type": "NASILA" },
+      { "from": 7, "to": 1, "label": "ZASILA", "type": "NASILA" }
+    ]
+  },
+  {
+    "id": "rachman_ocd_1997",
+    "title": "Model OCD (Rachman, 1997; Yorulmaz, 2007)",
+    "category": "OCD",
+    "description": "Model zaburzenia obsesyjno-kompulsyjnego z uwzględnieniem fuzji myśli i nadmiernej odpowiedzialności.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Bodziec wyzwalający", "patientText": "Dotknięcie klamki w miejscu publicznym", "x": 0, "y": -240 },
+      { "id": 2, "type": "thought", "label": "Niechciane myśli intruzywne", "patientText": "Zaraz czymś się zarażę i przeniosę to na rodzinę", "x": 0, "y": -150 },
+      { "id": 3, "type": "thought", "label": "Katastroficzna interpretacja znaczenia myśli", "patientText": "Pojawienie się tej myśli oznacza zagrożenie", "x": 0, "y": -50 },
+      { "id": 4, "type": "thought", "label": "Nadmierna odpowiedzialność i fuzja myśli", "patientText": "Pomyślenie o tym jest równe zrobieniu tego", "x": -220, "y": -50 },
+      { "id": 5, "type": "physiology", "label": "Odczucia z ciała i narastający niepokój", "patientText": "Uderzenie gorąca, napięcie", "x": 220, "y": 50 },
+      { "id": 6, "type": "emotion", "label": "Obsesje i wzmożony dystres", "patientText": "Paraliżujący lęk przed brakiem reakcji", "x": 0, "y": 120 },
+      { "id": 7, "type": "behavior", "label": "Neutralizacja / Kompulsje", "patientText": "Mycie rąk przez 15 minut w gorącej wodzie", "x": 0, "y": 230 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 4, "to": 3, "label": "WZMACNIA", "type": "NASILA" },
+      { "from": 3, "to": 5, "label": "WYWOŁUJE", "type": "NASILA" },
+      { "from": 3, "to": 6, "label": "GENERUJE", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "POTWIERDZA", "type": "NASILA" },
+      { "from": 6, "to": 7, "label": "ZMUSZA DO", "type": "NASILA" },
+      { "from": 7, "to": 1, "label": "REDUKUJE LĘK CHWILOWO", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "fairburn_eating_disorder_2008",
+    "title": "Transdiagnostyczny model zaburzeń odżywiania (Fairburn, 2008)",
+    "category": "Zaburzenia odżywiania",
+    "description": "Model wyjaśniający mechanizm podtrzymywania jadłowstrętu i bulimii psychicznej.",
+    "nodes": [
+      { "id": 1, "type": "thought", "label": "Nadmierna koncentracja na figurze, wadze i ich kontroli", "patientText": "Moja wartość zależy wyłącznie od tego ile ważę", "x": 0, "y": -200 },
+      { "id": 2, "type": "behavior", "label": "Rygorystyczna dieta i kontrola wagi", "patientText": "Głodówki, liczenie każdej kalorii", "x": 0, "y": -90 },
+      { "id": 3, "type": "physiology", "label": "Wyraźnie niska waga", "patientText": "Spadek masy ciała poniżej normy", "x": 200, "y": 30 },
+      { "id": 4, "type": "behavior", "label": "Napadowe objadanie się", "patientText": "Utrata kontroli nad jedzeniem pod wpływem głodu", "x": -150, "y": 30 },
+      { "id": 5, "type": "behavior", "label": "Kompensacyjne wymioty / środki przeczyszczające", "patientText": "Pozbywanie się kalorii w poczuciu winy", "x": -150, "y": 170 },
+      { "id": 6, "type": "trigger", "label": "Zdarzenia i zmiany nastroju", "patientText": "Stresujący dzień, trudne emocje", "x": -350, "y": -90 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "NAGLĄCA POTRZEBA", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 2, "to": 4, "label": "WYWOŁUJE WILCZY GŁÓD", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 5, "to": 1, "label": "WZMACNIA OBJAWY", "type": "NASILA" },
+      { "from": 6, "to": 2, "label": "WYZWALA REAKCJĘ", "type": "NASILA" }
+    ]
+  },
+  {
+    "id": "ehlers_clark_ptsd_2000",
+    "title": "Model poznawczy PTSD (Ehlers, Clark, 2000)",
+    "category": "Trauma / PTSD",
+    "description": "Przetwarzanie traumatycznych wspomnień i negatywna ich interpretacja wywołująca poczucie obecnego zagrożenia.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Charakterystyka traumy i wcześniejsze doświadczenia", "patientText": "Wcześniejsze urazy, brak wsparcia społecznego", "x": -250, "y": -200 },
+      { "id": 2, "type": "thought", "label": "Przetwarzanie poznawcze podczas traumy", "patientText": "Poczucie bezradności, dysocjacja w trakcie wypadku", "x": 250, "y": -200 },
+      { "id": 3, "type": "thought", "label": "Natura pamięci traumy", "patientText": "Brak spójnej narracji, żywe przebłyski (flashbacki)", "x": -150, "y": -60 },
+      { "id": 4, "type": "thought", "label": "Negatywna ocena traumy i konsekwencji", "patientText": "Nigdzie nie jestem bezpieczny / Świat jest zły", "x": 150, "y": -60 },
+      { "id": 5, "type": "emotion", "label": "Aktualne zagrożenie (Intruzje, pobudzenie)", "patientText": "Koszmary nocne, ciągłe czuwanie", "x": 0, "y": 80 },
+      { "id": 6, "type": "behavior", "label": "Strategie kontroli zagrożenia i objawów", "patientText": "Unikanie przypominajek, zażywanie leków/alkoholu", "x": 0, "y": 220 }
+    ],
+    "edges": [
+      { "from": 1, "to": 3, "label": "WPŁYWA NA", "type": "NASILA" },
+      { "from": 2, "to": 4, "label": "FORMUŁUJE", "type": "NASILA" },
+      { "from": 3, "to": 5, "label": "WYWOŁUJE", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "WZMACNIA", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "PROWADZI DO", "type": "NASILA" },
+      { "from": 6, "to": 3, "label": "UNIEMOŻLIWIA PRZETWARZANIE", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "fennell_low_self_esteem_1997",
+    "title": "Model niskiej samooceny (Fennell, 1997)",
+    "category": "Samoocena",
+    "description": "Powstawanie oraz podtrzymywanie negatywnej oceny własnej wartości poprzez sztywne zasady i przekonania.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Wczesne doświadczenia życiowe", "patientText": "Brak chwalenia, krytyczni rodzice, odrzucenie", "x": 0, "y": -260 },
+      { "id": 2, "type": "vulnerability", "label": "Kwestia kluczowa (Globalna ocena siebie)", "patientText": "Jestem głupi / Niewartościowy", "x": 0, "y": -160 },
+      { "id": 3, "type": "thought", "label": "Specyficzne dysfunkcjonalne założenia", "patientText": "Jeśli zawsze będę idealny, nikt nie odrzuci mojej osoby", "x": 0, "y": -60 },
+      { "id": 4, "type": "trigger", "label": "Wydarzenie krytyczne", "patientText": "Popełnienie drobnego błędu w projekcie", "x": 0, "y": 40 },
+      { "id": 5, "type": "thought", "label": "Samokrytyczne myśli / Lękowe przewidywania", "patientText": "Zaraz wszyscy zobaczą, jaki jestem nieudolny", "x": -160, "y": 150 },
+      { "id": 6, "type": "behavior", "label": "Dysfunkcjonalne zachowanie / Depresja", "patientText": "Wycofanie się, nadmierne sprawdzanie pracy", "x": 160, "y": 150 },
+      { "id": 7, "type": "consequence", "label": "Potwierdzenie kwestii kluczowej", "patientText": "Widzisz? Naprawdę do niczego się nie nadajesz", "x": 0, "y": 260 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "FORMUŁUJE", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "TWORZY OBRONĘ", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "ZŁAMANIE ZASADY", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "AKTYWUJE MYŚLI", "type": "NASILA" },
+      { "from": 4, "to": 6, "label": "WYZWALA REAKCJĘ", "type": "NASILA" },
+      { "from": 5, "to": 7, "label": "POTWIERDZA", "type": "NASILA" },
+      { "from": 6, "to": 7, "label": "POGŁĘBIA", "type": "NASILA" },
+      { "from": 7, "to": 2, "label": "UTRWALA BRAK WARTOŚCI", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "ellis_abc_model",
+    "title": "Podstawowy model ABC (Ellis, 1979)",
+    "category": "Podstawy CBT",
+    "description": "Klasyczny model powiązania zdarzenia (A), systemu przekonań i myśli (B) oraz konsekwencji emocjonalnych i zachowania (C).",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "A - Zdarzenie aktywujące (Antecedent)", "patientText": "Brak odpowiedzi na wiadomość SMS od znajomego", "x": -250, "y": 0 },
+      { "id": 2, "type": "thought", "label": "B - Przekonania i Myśli (Beliefs)", "patientText": "Pewnie mnie nie lubi i ma mnie dość", "x": 0, "y": 0 },
+      { "id": 3, "type": "consequence", "label": "C - Konsekwencje (Consequences)", "patientText": "Emocjonalne: Smutek; Behawioralne: Unikanie dalszego kontaktu", "x": 250, "y": 0 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA MYŚLI", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "POWODUJE REAKCJĘ", "type": "NASILA" }
+    ]
+  },
+  {
+    "id": "wells_gad_1995",
+    "title": "Poznawczy model GAD - lęk uogólniony (Wells, 1995)",
+    "category": "Lęk uogólniony (GAD)",
+    "description": "Model uogólnionego zaburzenia lękowego oparty na metaprzekonaniach i zamartwianiu się typu 1 i typu 2.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Czynnik wyzwalający", "patientText": "Artykuł o kryzysie gospodarczym / Drobne ukłucie w boku", "x": 0, "y": -220 },
+      { "id": 2, "type": "thought", "label": "Aktywacja pozytywnych metaprzekonań", "patientText": "Zamartwianie się pomoże mi przygotować się na najgorsze", "x": 0, "y": -120 },
+      { "id": 3, "type": "thought", "label": "Zamartwianie się typu 1", "patientText": "Co jeśli stracę oszczędności? Co jeśli zachoruję?", "x": 0, "y": -20 },
+      { "id": 4, "type": "thought", "label": "Aktywacja negatywnych metaprzekonań", "patientText": "Nie kontroluję swojego martwienia się / Zwariuję od tego", "x": 0, "y": 80 },
+      { "id": 5, "type": "thought", "label": "Zamartwianie się typu 2 (Metazamartwianie)", "patientText": "Moje myśli doprowadzą mnie do choroby psychicznej", "x": 0, "y": 180 },
+      { "id": 6, "type": "behavior", "label": "Zachowanie / Kontrola myśli", "patientText": "Próby niedopuszczania myśli, poszukiwanie otuchy", "x": -200, "y": 250 },
+      { "id": 7, "type": "emotion", "label": "Emocje i wzbudzenie somatyczne", "patientText": "Przewlekły niepokój, napięcie mięśniowe, bezsenność", "x": 200, "y": 250 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "URUCHAMIA STRATEGIĘ", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "AKTYWUJE OBOWIAZKI", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "GENERUJE METAZAMARTWIANIE", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "PROWADZI DO KONTROLI", "type": "NASILA" },
+      { "from": 5, "to": 7, "label": "WZMOCNIENIE NAPIĘCIA", "type": "NASILA" },
+      { "from": 6, "to": 3, "label": "BRAK EFEKTU KONTROLI", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "dugas_gad_2007",
+    "title": "Model GAD oparty na tolerancji niepewności (Dugas, Robichaud, 2007)",
+    "category": "Lęk uogólniony (GAD)",
+    "description": "Model wyjaśniający lęk uogólniony poprzez nietolerancję niepewności, negatywne nastawienie do problemów i unikanie poznawcze.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Sytuacja / Niepewne zdarzenie", "patientText": "Oczekiwanie na wyniki badań lub decyzję w pracy", "x": 0, "y": -220 },
+      { "id": 2, "type": "vulnerability", "label": "Nietolerancja niepewności (A co jeśli...?)", "patientText": "Nie znoszę braku stuprocentowej pewności", "x": 0, "y": -120 },
+      { "id": 3, "type": "thought", "label": "Pozytywne przekonania na temat martwienia się", "patientText": "Martwienie się świadczy o odpowiedzialności", "x": -180, "y": -20 },
+      { "id": 4, "type": "thought", "label": "Martwienie się i negatywna koncentracja", "patientText": "Na pewno wydarzy się katastrofa, nie poradzę sobie", "x": 0, "y": 60 },
+      { "id": 5, "type": "behavior", "label": "Poznawcze unikanie", "patientText": "Odpychanie wyobrażeń, unikanie konfrontacji", "x": 180, "y": 60 },
+      { "id": 6, "type": "emotion", "label": "Lęk, wyczerpanie i przygnębienie", "patientText": "Przewlekły stres, brak energii, pesymizm", "x": 0, "y": 180 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA REAKCJĘ", "type": "NASILA" },
+      { "from": 2, "to": 4, "label": "NASILA MARTWIENIE SIĘ", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "UZASADNIA STRATEGIĘ", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "SKUTKUJE UNIKANIEM", "type": "NASILA" },
+      { "from": 4, "to": 6, "label": "GENERUJE DYSTRES", "type": "NASILA" },
+      { "from": 5, "to": 2, "label": "BRAK WERYFIKACJI REALISTYCZNEJ", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "harvey_insomnia_2002",
+    "title": "Poznawczo-behawioralny model zaburzeń snu (Harvey, 2002)",
+    "category": "Zaburzenia snu",
+    "description": "Błędne koło bezsenności napędzane zamartwianiem się w ciągu dnia i nocy oraz zachowaniami zabezpieczającymi.",
+    "nodes": [
+      { "id": 1, "type": "thought", "label": "Zasypianie / Myśli w ciągu dnia", "patientText": "Jeśli dziś nie zasnę, jutro nie będę w stanie pracować", "x": 0, "y": -220 },
+      { "id": 2, "type": "thought", "label": "Nadmierna, negatywna aktywność poznawcza", "patientText": "Przeliczanie godzin snu, lękowe analizy", "x": 0, "y": -120 },
+      { "id": 3, "type": "physiology", "label": "Pobudzenie i dystres fizjologiczny", "patientText": "Kołatanie serca, napięcie w ciele w łóżku", "x": 0, "y": -20 },
+      { "id": 4, "type": "behavior", "label": "Selektywna uwaga i monitorowanie", "patientText": "Ciągłe patrzenie na zegarek i skanowanie ciała", "x": -180, "y": 80 },
+      { "id": 5, "type": "thought", "label": "Zniekształcenia na temat trudności ze snem", "patientText": "Moje ciało zupełnie zatraciło zdolność snu", "x": 180, "y": 80 },
+      { "id": 6, "type": "behavior", "label": "Zachowania zabezpieczające", "patientText": "Leżenie w łóżku w dzień, nadużywanie kawy", "x": 0, "y": 180 },
+      { "id": 7, "type": "consequence", "label": "Trwała utrata możliwości zasypiania", "patientText": "Przewlekła bezsenność i zmęczenie", "x": 0, "y": 270 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "URUCHAMIA MYŚLI", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "WYWOŁUJE POBUDZENIE", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "NASILA MONITOROWANIE", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "POTWIERDZA OBIAWY", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "ZMUSZA DO DZIŁAŃ", "type": "NASILA" },
+      { "from": 6, "to": 2, "label": "ZASILA ZAMARTWIANIE", "type": "PODTRZYMUJE" },
+      { "from": 6, "to": 7, "label": "SKUTKUJE", "type": "NASILA" }
+    ]
+  },
+  {
+    "id": "salkovskis_health_anxiety_1990",
+    "title": "Poznawczy model lęku o zdrowie (Salkovskis, Warwick, 1990)",
+    "category": "Lęk o zdrowie / Hipochondria",
+    "description": "Model wyjaśniający hipochondrię poprzez wybiórczą uwagę na sygnały z ciała oraz nadinterpretację łagodnych objawów.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Wcześniejsze doświadczenia", "patientText": "Ciężka choroba lub śmierć kogoś w rodzinie", "x": 0, "y": -240 },
+      { "id": 2, "type": "vulnerability", "label": "Dysfunkcjonalne schematy", "patientText": "Nawet drobny objaw może oznaczać groźną chorobę", "x": 0, "y": -150 },
+      { "id": 3, "type": "trigger", "label": "Krytyczne zdarzenie", "patientText": "Przeczytanie artykułu o nowotworach lub ukłucie w klatce", "x": 0, "y": -60 },
+      { "id": 4, "type": "thought", "label": "Negatywne myśli automatyczne", "patientText": "To na pewno guz mózgu, zaraz umrę", "x": 0, "y": 40 },
+      { "id": 5, "type": "emotion", "label": "Lęk / Depresja / Złość", "patientText": "Silny niepokój o własne życie", "x": -180, "y": 140 },
+      { "id": 6, "type": "behavior", "label": "Zachowanie (Badanie ciała, upewnianie się)", "patientText": "Sprawdzanie węzłów chłonnych, wizyty u lekarzy", "x": 180, "y": 140 },
+      { "id": 7, "type": "physiology", "label": "Zmiany fizjologiczne", "patientText": "Napięciowe bóle głowy, przyspieszone tętno", "x": 0, "y": 240 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "BUDUJE SCHEMATY", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "NADAJE WARTOŚĆ", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "AKTYWUJE MYŚLI", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "WYWOŁUJE LĘK", "type": "NASILA" },
+      { "from": 4, "to": 6, "label": "PROWADZI DO KONTROLI", "type": "NASILA" },
+      { "from": 5, "to": 7, "label": "ZASILA ZMIANY W CIALE", "type": "NASILA" },
+      { "from": 7, "to": 4, "label": "DOSTARCZA NOWYCH OBJAWÓW", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "veale_bdd_2004",
+    "title": "Model zaburzenia dysmorficznego (Veale, 2004)",
+    "category": "Dysmorfofobia (BDD)",
+    "description": "Poznawczo-behawioralny model dysmorfofobii polegający na przetwarzaniu siebie jako obiektu estetycznego i ruminacjach.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Bodziec (Obraz wyglądu)", "patientText": "Spojrzenie w lustro, zobaczenie zdjęcia w mediach", "x": 0, "y": -220 },
+      { "id": 2, "type": "thought", "label": "Selektywna uwaga i przetwarzanie obiektu", "patientText": "Skupienie się wyłącznie na kształcie nosa / skóry", "x": 180, "y": -120 },
+      { "id": 3, "type": "thought", "label": "Negatywna ocena własnego obrazu ciała", "patientText": "Wyglądam potwornie i obrzydliwie", "x": 0, "y": -40 },
+      { "id": 4, "type": "thought", "label": "Ruminacje na temat braku atrakcyjności", "patientText": "Inni patrzą tylko na moją skazę i mnie oceniają", "x": 180, "y": 60 },
+      { "id": 5, "type": "emotion", "label": "Nastróg (Obrzydzenie, wstręt, depresja)", "patientText": "Poczucie wstydu, przygnębienie", "x": 0, "y": 140 },
+      { "id": 6, "type": "behavior", "label": "Zachowania zabezpieczające i ukrywające", "patientText": "Nokautujący makijaż, unikanie światła, poprawianie fryzury", "x": -180, "y": 60 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "PRZYCIĄGA UWAGĘ", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "ZABURZA PERCEPCJĘ", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "URUCHAMIA RUMINACJE", "type": "NASILA" },
+      { "from": 3, "to": 5, "label": "WYWOŁUJE WSTRĘT", "type": "NASILA" },
+      { "from": 3, "to": 6, "label": "PROWADZI DO MASKOWANIA", "type": "NASILA" },
+      { "from": 6, "to": 3, "label": "UNIZMOCNIENIE SAMOAKCEPTACJI", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "steketee_hoarding_2014",
+    "title": "Model kompulsywnego zbieractwa (Steketee, Frost, 2014)",
+    "category": "OCD / Zbieractwo",
+    "description": "Model zbieractwa uwzględniający deficyty przetwarzania informacji, przekonania o przedmiotach oraz reakcje emocjonalne.",
+    "nodes": [
+      { "id": 1, "type": "vulnerability", "label": "Czynniki podatności / Przetwarzanie informacji", "patientText": "Trudności w podejmowaniu decyzji, kategoryzacji i pamięci", "x": -260, "y": -150 },
+      { "id": 2, "type": "vulnerability", "label": "Wczesne doświadczenia i przekonania kluczowe", "patientText": "Brak poczucia bezpieczeństwa, lęk przed stratą", "x": -260, "y": 50 },
+      { "id": 3, "type": "thought", "label": "Przekonania o posiadanych przedmiotach", "patientText": "Ten przedmiot może się przydać / Ma wartość sentymentalną", "x": 0, "y": -100 },
+      { "id": 4, "type": "emotion", "label": "Pozytywne i negatywne emocje", "patientText": "Ekscytacja przy kupowaniu / Lęk i poczucie winy przy wyrzucaniu", "x": 0, "y": 80 },
+      { "id": 5, "type": "behavior", "label": "Nabywanie nowych rzeczy", "patientText": "Kupowanie niepotrzebnych przedmiotów, znoszenie rzeczy", "x": 220, "y": -50 },
+      { "id": 6, "type": "behavior", "label": "Zagracanie i trudność w wyrzucaniu", "patientText": "Gromadzenie przedmiotów w przestrzeni życiowej", "x": 220, "y": 120 }
+    ],
+    "edges": [
+      { "from": 1, "to": 3, "label": "UTRUDNIA DECYZJE", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "FORMUŁUJE PRZYWIĄZANIE", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "WYWOŁUJE REAKCJE", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "MOTYWUJE NABYWANIE", "type": "NASILA" },
+      { "from": 4, "to": 6, "label": "BLOKUJE WYRZUCANIE", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "POGŁĘBIA ZAGRACENIE", "type": "NASILA" }
+    ]
+  },
+  {
+    "id": "stroebe_grief_1999",
+    "title": "Dwuprocesowy model żałoby (Stroebe, Schut, 1999)",
+    "category": "Żałoba",
+    "description": "Model żałoby zakłada nieustanną oscylację między zorientowaniem na stratę a zorientowaniem na odbudowę życia.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Codzienne doświadczenia życia po stracie", "patientText": "Przejście przez codzienność po utracie bliskiego", "x": 0, "y": -200 },
+      { "id": 2, "type": "emotion", "label": "Zorientowanie na stratę (Loss-Orientation)", "patientText": "Płacz, tęsknota, ruminacje o zmarłym, unikanie odbudowy", "x": -200, "y": 0 },
+      { "id": 3, "type": "behavior", "label": "Zorientowane na odbudowę (Restoration-Orientation)", "patientText": "Załatwianiespraw, nowe role, budowanie nowej tożsamości", "x": 200, "y": 0 },
+      { "id": 4, "type": "consequence", "label": "Dynamiczny proces oscylacji", "patientText": "Naturalne przechodzenie między przeżywaniem bólu a przystosowaniem", "x": 0, "y": 180 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "AKTYWUJE BÓL", "type": "NASILA" },
+      { "from": 1, "to": 3, "label": "WYMAGA DZIAŁANIA", "type": "NASILA" },
+      { "from": 2, "to": 4, "label": "OSCYLUJE", "type": "WZAJEMNE" },
+      { "from": 3, "to": 4, "label": "OSCYLUJE", "type": "WZAJEMNE" }
+    ]
+  },
+  {
+    "id": "sutton_self_harm_2007",
+    "title": "Cykl samookaleczania (Sutton, 2007)",
+    "category": "Samookaleczenia / Regulacja emocji",
+    "description": "Model cykliczny wyjaśniający narastanie cierpienia psychicznego i mechanizm ulgi poprzez samookaleczenie.",
+    "nodes": [
+      { "id": 1, "type": "thought", "label": "A: Męka umysłowa", "patientText": "Natrętne negatywne myśli, poczucie uwięzienia i winy", "x": -180, "y": -160 },
+      { "id": 2, "type": "emotion", "label": "B: Emocjonalne pochłanianie", "patientText": "Szalejący ogień uczuć: przestrach, wściekłość, rozpacz", "x": 180, "y": -160 },
+      { "id": 3, "type": "physiology", "label": "C: Stacja paniki", "patientText": "Uczucie bycia poza kontrolą, przymus działania", "x": 180, "y": 0 },
+      { "id": 4, "type": "behavior", "label": "D: Stacja działania (Samookaleczenie)", "patientText": "Fizyczne zranienie w celu ucieczki od bólu psychicznego", "x": 180, "y": 160 },
+      { "id": 5, "type": "emotion", "label": "E: Czucie się lepiej / Ulga", "patientText": "Chwilowe wyciszenie napięcia, uczucie powrotu do życia", "x": -180, "y": 160 },
+      { "id": 6, "type": "emotion", "label": "F: Reakcja żalu i wstydu", "patientText": "Wstyd, nienawiść do siebie, poczucie winy z powodu blizn", "x": -180, "y": 0 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "ZASILA EMOCJE", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "WYWOŁUJE PANIKĘ", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "ZMUSZA DO DZIŁANIA", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "DAJE CHWILOWĄ ULGĘ", "type": "OSŁABIA" },
+      { "from": 5, "to": 6, "label": "ROZWIJA WSTYD", "type": "NASILA" },
+      { "from": 6, "to": 1, "label": "REAKTYWUJE MĘKĘ", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "hunter_dpdr_2003",
+    "title": "Model depersonalizacji i derealizacji (Hunter i in., 2003)",
+    "category": "Zaburzenia dysocjacyjne",
+    "description": "Poznawczo-behawioralny model depersonalizacji/derealizacji napędzany błędną katastroficzną interpretacją stanów dysocjacyjnych.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Czynnik wyzwalający (Stres, trauma, zmęczenie)", "patientText": "Napad paniki, silny stres lub zażycie używki", "x": 0, "y": -220 },
+      { "id": 2, "type": "physiology", "label": "Symptomy depersonalizacji / derealizacji", "patientText": "Poczucie obcości własnego ciała, świat za szybą", "x": 0, "y": -120 },
+      { "id": 3, "type": "thought", "label": "Katastroficzna interpretacja symptomów", "patientText": "Zwariuję, stracę kontrolę lub uszkodzę swój mózg", "x": 180, "y": -20 },
+      { "id": 4, "type": "emotion", "label": "Wzrost objawów lękowych", "patientText": "Paraliżujący niepokój, wzbudzenie autonomiczne", "x": 180, "y": 100 },
+      { "id": 5, "type": "behavior", "label": "Koło podtrzymujące (Unikanie i skanowanie)", "patientText": "Ciągłe sprawdzanie swojego stanu, unikanie miejsc", "x": 0, "y": 200 },
+      { "id": 6, "type": "thought", "label": "Łagodząca interpretacja sytuacyjna", "patientText": "To tylko reakcja na zmęczenie/stres", "x": -180, "y": -20 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "KATASTROFIZACJA", "type": "NASILA" },
+      { "from": 2, "to": 6, "label": "NORMALIZACJA", "type": "OSŁABIA" },
+      { "from": 3, "to": 4, "label": "WZMACNIA LĘK", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "PROWADZI DO KONTROLI", "type": "NASILA" },
+      { "from": 5, "to": 2, "label": "POTWIERDZA OBJAWY", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "windgassen_ibs_2017",
+    "title": "Błędne koło objawów jelita drażliwego (Windgassen i in., 2017)",
+    "category": "Zaburzenia psychosomatyczne",
+    "description": "Model błędnego koła zespołu jelita drażliwego łączący stres, objawy z jelit i wycofanie społeczne.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Wyzwalacz (Infekcja i/lub Stres)", "patientText": "Trudny okres w pracy, przebebyta infekcja", "x": 0, "y": -220 },
+      { "id": 2, "type": "physiology", "label": "Zmiany w funkcjonowaniu jelit", "patientText": "Zaburzenia motoryki jelit, skurcze", "x": 0, "y": -120 },
+      { "id": 3, "type": "physiology", "label": "Objawy z jelit", "patientText": "Ból brzucha, wzdęcia, biegunki/zaparcia", "x": 180, "y": -20 },
+      { "id": 4, "type": "behavior", "label": "Zakłócenie codziennej rutyny i diety", "patientText": "Rygorystyczna dieta, ciągłe poszukiwanie toalety", "x": 180, "y": 100 },
+      { "id": 5, "type": "thought", "label": "Obawy o zdrowie i sprawność", "patientText": "Zaraz zeświruję z bólu, nie dotrę do domu", "x": 0, "y": 200 },
+      { "id": 6, "type": "behavior", "label": "Zakłócenie życia społecznego/zawodowego", "patientText": "Rezygnacja ze wyjść, izolacja od znajomych", "x": -180, "y": 100 },
+      { "id": 7, "type": "emotion", "label": "Stres i lęk", "patientText": "Napięcie i obawa przed kolejnym atakiem bólu", "x": -180, "y": -20 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA ZMIANY", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "GENERUJE OBJAWY", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "ZMUSZA DO ZMIAN", "type": "NASILA" },
+      { "from": 4, "to": 5, "label": "NASILA OBAWY", "type": "NASILA" },
+      { "from": 5, "to": 6, "label": "PROWADZI DO IZOLACJI", "type": "NASILA" },
+      { "from": 6, "to": 7, "label": "ROZWIJA STRES", "type": "NASILA" },
+      { "from": 7, "to": 2, "label": "ZASILA WZBUDZENIE JELIT", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "westbrook_anxiety_2007",
+    "title": "Model podtrzymywania lęku (Westbrook, Kennerly, Kirk, 2007)",
+    "category": "Lęk / Ogólne",
+    "description": "Uniwersalny model podtrzymywania lęku wynikający z braku możliwości sfalsyfikowania przekonań przez zachowania zabezpieczające.",
+    "nodes": [
+      { "id": 1, "type": "trigger", "label": "Wydarzenie zewnętrzne lub wewnętrzne", "patientText": "Pojawienie się niepokojącego sygnału lub wyzwania", "x": 0, "y": -200 },
+      { "id": 2, "type": "thought", "label": "Postrzegane zagrożenie (Wyolbrzymione)", "patientText": "Zaraz stanie się najgorsze", "x": 0, "y": -100 },
+      { "id": 3, "type": "behavior", "label": "Próba ochronienia siebie (Zabezpieczenia)", "patientText": "Unikanie, ucieczka, szukanie wsparcia", "x": 180, "y": 0 },
+      { "id": 4, "type": "consequence", "label": "Działanie przynosi krótkoterminową ulgę", "patientText": "Uff, tym razem nic się nie stało", "x": 0, "y": 100 },
+      { "id": 5, "type": "thought", "label": "Strach pozostaje taki sam", "patientText": "Gdybym tego nie zrobił, wydarzyłaby się katastrofa", "x": -180, "y": 0 }
+    ],
+    "edges": [
+      { "from": 1, "to": 2, "label": "WYZWALA MYŚLI", "type": "NASILA" },
+      { "from": 2, "to": 3, "label": "ZMUSZA DO OBRONY", "type": "NASILA" },
+      { "from": 3, "to": 4, "label": "DAJE ULGĘ", "type": "OSŁABIA" },
+      { "from": 4, "to": 5, "label": "BRAK FALSYFIKACJI", "type": "PODTRZYMUJE" },
+      { "from": 5, "to": 2, "label": "UTRZWIALA ZAGROŻENIE", "type": "PODTRZYMUJE" }
+    ]
+  },
+  {
+    "id": "starley_perfectionism_2021",
+    "title": "Model góry lodowej w perfekcjonizmie (Starley, 2021)",
+    "category": "Perfekcjonizm",
+    "description": "Model perfekcjonizmu dzielący zachowania widoczne na powierzchni od głębokich niezaspokojonych potrzeb pod powierzchnią.",
+    "nodes": [
+      { "id": 1, "type": "behavior", "label": "Nad powierzchnią: Zachowania perfekcjonistyczne", "patientText": "Kontrola, poprawianie wszystkiego, sprawdzanie", "x": 0, "y": -180 },
+      { "id": 2, "type": "emotion", "label": "Pod powierzchnią: Lęk i niepokój", "patientText": "Napięcie w relacjach, obawa przed odrzuceniem", "x": 0, "y": -60 },
+      { "id": 3, "type": "vulnerability", "label": "Niezaspokojone potrzeby neurologiczne/sensoryczne", "patientText": "Potrzeba porządku, rutyny i przewidywalności", "x": -270, "y": 100 },
+      { "id": 4, "type": "vulnerability", "label": "Niezaspokojone potrzeby emocjonalne", "patientText": "Poszukiwanie akceptacji, miłości i troski", "x": -90, "y": 100 },
+      { "id": 5, "type": "vulnerability", "label": "Niezaspokojone potrzeby społeczne", "patientText": "Potrzeba przynależności i bycia zrozumianym", "x": 90, "y": 100 },
+      { "id": 6, "type": "vulnerability", "label": "Niezaspokojone potrzeby samooceny", "patientText": "Dążenie do poczucia bycia 'wystarczającym'", "x": 270, "y": 100 }
+    ],
+    "edges": [
+      { "from": 3, "to": 2, "label": "GENERUJE LĘK", "type": "NASILA" },
+      { "from": 4, "to": 2, "label": "GENERUJE LĘK", "type": "NASILA" },
+      { "from": 5, "to": 2, "label": "GENERUJE LĘK", "type": "NASILA" },
+      { "from": 6, "to": 2, "label": "GENERUJE LĘK", "type": "NASILA" },
+      { "from": 2, "to": 1, "label": "PROWADZI DO KONTROLI", "type": "NASILA" }
+    ]
+  }
+]
