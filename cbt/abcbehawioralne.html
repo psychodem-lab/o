@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Behawioralny Model ABC</title>
+    <link rel="shortcut icon" type="image/png" href="logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-w-full { width: 100% !important; max-width: none !important; }
+            .print-shadow-none { box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+            .print-m-0 { margin: 0 !important; padding: 0 !important; }
+            .print-break-inside-avoid { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-900 pb-10">
+
+    <header class="bg-indigo-900 text-white p-4 shadow-md no-print">
+        <div class="container mx-auto flex justify-between items-center max-w-6xl">
+            <h1 class="text-xl font-black uppercase tracking-tight">Model <span class="text-indigo-400">ABC</span> <span class="text-sm font-normal normal-case opacity-75">(Behawioralny)</span></h1>
+            <button onclick="window.print()" class="text-xs bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded font-bold uppercase transition shadow">
+                Drukuj / Zapisz PDF
+            </button>
+        </div>
+    </header>
+
+    <div class="container mx-auto py-6 px-4 max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Formularz wprowadzania danych -->
+        <aside class="lg:col-span-5 space-y-4 no-print h-fit">
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Uzupełnij dzienniczek</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-blue-600 mb-1">A - Aktywator (Sytuacja przed)</label>
+                        <p class="text-[10px] text-slate-500 mb-2 italic">Sytuacja, bodziec lub zdarzenie, które występuje bezpośrednio przed zachowaniem i je wywołuje.</p>
+                        <textarea id="input-a" rows="3" class="w-full p-2 text-sm border rounded bg-slate-50 focus:ring-2 ring-blue-200 outline-none transition-all" placeholder="np. Usłyszenie dźwięku powiadomienia w telefonie podczas nauki." oninput="updateView()"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-emerald-600 mb-1">B - Obserwowalne Zachowanie </label>
+                        <p class="text-[10px] text-slate-500 mb-2 italic">Konkretna, obserwowalna reakcja lub działanie człowieka w odpowiedzi na bodziec A.</p>
+                        <textarea id="input-b" rows="3" class="w-full p-2 text-sm border rounded bg-slate-50 focus:ring-2 ring-emerald-200 outline-none transition-all" placeholder="np. Odłożenie pracy, sięgnięcie po telefon i przeglądanie mediów społecznościowych przez 15 minut." oninput="updateView()"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-red-600 mb-1">C - Konsekwencje </label>
+                        <p class="text-[10px] text-slate-500 mb-2 italic">Wynik lub reakcja otoczenia po wystąpieniu zachowania B, która wpływa na to, czy zachowanie będzie się powtarzać.</p>
+                        <textarea id="input-c" rows="3" class="w-full p-2 text-sm border rounded bg-slate-50 focus:ring-2 ring-red-200 outline-none transition-all" placeholder="np. Chwilowa ulga od trudnego zadania (wzmocnienie negatywne) oraz odczucie przyjemności z nowych treści (wzmocnienie pozytywne)." oninput="updateView()"></textarea>
+                    </div>
+                </div>
+
+                <button onclick="clearForm()" class="w-full mt-6 text-xs text-slate-500 font-bold uppercase hover:text-red-600 border border-slate-300 rounded py-2 bg-white transition-all">
+                    Wyczyść formularz
+                </button>
+            </div>
+        </aside>
+
+        <!-- Podgląd Karty ABC -->
+        <main class="lg:col-span-7 print-w-full">
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-slate-200 print-shadow-none h-full flex flex-col">
+                <h2 class="text-center text-lg font-black text-slate-800 uppercase tracking-widest mb-6 border-b pb-3">Analiza Behawioralna ABC</h2>
+                
+                <div class="flex-1 flex flex-col justify-start">
+                    
+                    <!-- A -->
+                    <div class="relative bg-blue-50 border-l-4 border-blue-500 p-5 rounded-r-lg print-break-inside-avoid shadow-sm mb-2">
+                        <div class="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md">A</div>
+                        <h3 class="font-bold text-blue-800 text-xs uppercase mb-1 ml-6 tracking-wide">Aktywator (Antecedent)</h3>
+                        <p id="output-a" class="text-slate-700 whitespace-pre-wrap ml-6 text-sm italic min-h-[1.5rem]">Brak wpisu...</p>
+                    </div>
+
+                    <div class="flex justify-center text-slate-300 py-2 print-break-inside-avoid">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                    </div>
+
+                    <!-- B -->
+                    <div class="relative bg-emerald-50 border-l-4 border-emerald-500 p-5 rounded-r-lg print-break-inside-avoid shadow-sm mb-2">
+                        <div class="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md">B</div>
+                        <h3 class="font-bold text-emerald-800 text-xs uppercase mb-1 ml-6 tracking-wide">Zachowanie (Behavior)</h3>
+                        <p id="output-b" class="text-slate-800 whitespace-pre-wrap ml-6 text-sm font-medium min-h-[1.5rem]">Brak wpisu...</p>
+                    </div>
+
+                    <div class="flex justify-center text-slate-300 py-2 print-break-inside-avoid">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                    </div>
+
+                    <!-- C -->
+                    <div class="relative bg-red-50 border-l-4 border-red-500 p-5 rounded-r-lg print-break-inside-avoid shadow-sm">
+                        <div class="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md z-10">C</div>
+                        <h3 class="font-bold text-red-800 text-xs uppercase mb-1 ml-6 tracking-wide">Konsekwencje (Consequence)</h3>
+                        <p id="output-c" class="text-slate-800 whitespace-pre-wrap ml-6 text-sm min-h-[1.5rem]">Brak wpisu...</p>
+                    </div>
+
+                </div>
+                
+                <p class="text-center text-[10px] text-slate-400 mt-8 no-print uppercase tracking-wider">Wypełnij pola po lewej stronie, aby wygenerować model</p>
+            </div>
+        </main>
+
+        <!-- Harmonijka: Dla ciekawskich -->
+        <details class="lg:col-span-12 group bg-white rounded-xl shadow-md border border-slate-200 no-print overflow-hidden">
+            <summary class="p-4 bg-slate-50 hover:bg-slate-100 cursor-pointer flex justify-between items-center font-bold text-slate-800 select-none transition-colors border-b group-open:border-slate-200 border-transparent">
+                <div class="flex items-center gap-2">
+                    <span class="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-1 rounded-full font-extrabold uppercase">Dla ciekawskich</span>
+                    <span class="text-sm font-semibold text-slate-700">Wzmocnienie vs Kara – jak je odróżnić?</span>
+                </div>
+                <svg class="w-5 h-5 text-slate-500 transform group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </summary>
+            
+            <div class="p-5 space-y-5 text-sm text-slate-700">
+                <!-- Zasady główne -->
+                <div class="bg-indigo-50/60 p-4 rounded-lg border border-indigo-100 space-y-2">
+                    <p class="font-semibold text-indigo-950">Rozróżnienie między wzmocnieniem a karą sprowadza się do dwóch prostych reguł:</p>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-700">
+                        <li><strong class="text-slate-900">Wzmocnienie</strong> zawsze <strong>zwiększa</strong> prawdopodobieństwo powtórzenia zachowania.</li>
+                        <li><strong class="text-slate-900">Kara</strong> zawsze <strong>zmniejsza</strong> to prawdopodobieństwo.</li>
+                    </ol>
+                    <p class="text-xs text-slate-600 pt-1 border-t border-indigo-100/80 mt-2">
+                        • Słowo <strong>Pozytywne</strong> oznacza <strong>dodanie bodźca (+)</strong>, a <strong>Negatywne</strong> oznacza <strong>odebranie bodźca (-)</strong>.
+                    </p>
+                </div>
+
+                <!-- Tabela porównawcza -->
+                <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase font-bold tracking-wider">
+                                <th class="p-3 border-r border-slate-200 w-1/4">Klasyfikacja</th>
+                                <th class="p-3 border-r border-slate-200 w-3/8">Dodanie bodźca (Pozytywne / +)</th>
+                                <th class="p-3 w-3/8">Odebranie bodźca (Negatywne / -)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            <!-- Wzmocnienie -->
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-3 font-bold text-slate-800 bg-slate-50/80 border-r border-slate-200 align-top">
+                                    Zwiększenie częstotliwości zachowania
+                                    <div class="text-[11px] font-normal text-slate-500 mt-1">(Wzmocnienie)</div>
+                                </td>
+                                <td class="p-3 border-r border-slate-200 align-top space-y-1.5">
+                                    <div class="font-bold text-emerald-700 text-sm">Wzmocnienie Pozytywne</div>
+                                    <div><strong>• Opis:</strong> Dodanie przyjemnego bodźca po wystąpieniu zachowania.</div>
+                                    <div><strong>• Skutek:</strong> Zachowanie częściej się powtarza.</div>
+                                    <div><strong>• Przykład:</strong> Pies siada na komendę i dostaje smakołyk.</div>
+                                </td>
+                                <td class="p-3 align-top space-y-1.5">
+                                    <div class="font-bold text-blue-700 text-sm">Wzmocnienie Negatywne</div>
+                                    <div><strong>• Opis:</strong> Usunięcie lub uniknięcie nieprzyjemnego bodźca po wystąpieniu zachowania.</div>
+                                    <div><strong>• Skutek:</strong> Zachowanie częściej się powtarza.</div>
+                                    <div><strong>• Przykład:</strong> Założenie pasów bezpieczeństwa, aby wyciszyć denerwujący dźwięk w samochodzie.</div>
+                                </td>
+                            </tr>
+                            <!-- Kara -->
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-3 font-bold text-slate-800 bg-slate-50/80 border-r border-slate-200 align-top">
+                                    Zmniejszenie częstotliwości zachowania
+                                    <div class="text-[11px] font-normal text-slate-500 mt-1">(Kara)</div>
+                                </td>
+                                <td class="p-3 border-r border-slate-200 align-top space-y-1.5">
+                                    <div class="font-bold text-amber-700 text-sm">Kara Pozytywna</div>
+                                    <div><strong>• Opis:</strong> Dodanie nieprzyjemnego bodźca po wystąpieniu zachowania.</div>
+                                    <div><strong>• Skutek:</strong> Zachowanie rzadziej się powtarza.</div>
+                                    <div><strong>• Przykład:</strong> Otrzymanie mandatu za przekroczenie prędkości.</div>
+                                </td>
+                                <td class="p-3 align-top space-y-1.5">
+                                    <div class="font-bold text-red-700 text-sm">Kara Negatywna</div>
+                                    <div><strong>• Opis:</strong> Odebranie przyjemnego bodźca po wystąpieniu zachowania.</div>
+                                    <div><strong>• Skutek:</strong> Zachowanie rzadziej się powtarza.</div>
+                                    <div><strong>• Przykład:</strong> Zabranie dziecku konsoli do gier za złe zachowanie.</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </details>
+
+    </div>
+
+    <script>
+        function updateView() {
+            const fields = ['a', 'b', 'c'];
+            
+            fields.forEach(field => {
+                const val = document.getElementById(`input-${field}`).value;
+                document.getElementById(`output-${field}`).innerText = val || "Brak wpisu...";
+            });
+        }
+
+        function clearForm() {
+            if(confirm("Czy na pewno chcesz wyczyścić wszystkie pola?")) {
+                const fields = ['a', 'b', 'c'];
+                fields.forEach(field => {
+                    document.getElementById(`input-${field}`).value = '';
+                });
+                updateView();
+            }
+        }
+    </script>
+</body>
+</html>

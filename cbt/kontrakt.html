@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kontrakt na życie - Plan Bezpieczeństwa</title>
+    <link rel="shortcut icon" type="image/png" href="cbt.png" />
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #1b4332;
+            --secondary: #2d6a4f;
+            --accent: #52b788;
+            --bg-color: #f7f3ec;
+            --card-bg: #fffdf9;
+            --border: #d8c3a5;
+            --text-main: #1b4332;
+            --danger: #6c757d;
+            --success: #40916c;
+            --input-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e9e1d4 0.75px, transparent 0.75px), radial-gradient(#e9e1d4 0.75px, var(--bg-color) 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo-wrapper {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-wrapper a {
+            text-decoration: none;
+            border: none;
+        }
+        .logo-wrapper img {
+            max-height: 80px;
+            width: auto;
+            display: inline-block;
+            border: 0;
+        }
+
+        /* Główny kontener strony */
+        .page-wrapper {
+            background: var(--card-bg);
+            max-width: 800px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(27, 67, 50, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        /* Nagłówki */
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .test-header h2 {
+            color: var(--primary);
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .test-header p {
+            color: var(--secondary);
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        h3 {
+            color: var(--secondary);
+            margin-top: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        /* Pola formularza */
+        .question-row {
+            margin-bottom: 20px;
+        }
+
+        .q-text {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        input[type="text"], 
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background-color: var(--input-bg);
+            font-size: 1rem;
+            color: var(--text-main);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            resize: vertical;
+        }
+
+        input[type="text"]:focus, 
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.2);
+        }
+
+        .clinician-notes-area {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f4eee3;
+            border-radius: 6px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .clinician-notes-area label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        /* Sekcja umowy i podpisów */
+        .contract-agreement {
+            background-color: #e5ede6;
+            border-left: 4px solid var(--secondary);
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .contract-agreement p {
+            margin-top: 0;
+            font-weight: 500;
+            font-size: 1.05rem;
+            color: var(--primary);
+        }
+
+        .sig-container {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        /* Zapewnienie responsywności canvasu bez psucia jego wewnętrznych wymiarów */
+        .sig-canvas {
+            border: 2px dashed var(--border);
+            border-radius: 6px;
+            background-color: #fff;
+            cursor: crosshair;
+            touch-action: none; /* Zapobiega przewijaniu strony palcem podczas rysowania na telefonie */
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 400 / 150; 
+        }
+
+        .sig-actions {
+            margin-top: 10px;
+        }
+
+        /* Przyciski */
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s, transform 0.1s;
+            color: white;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-calc { background-color: #95a5a6; display: none; }
+        .btn-print { background-color: var(--accent); }
+        .btn-pdf { background-color: var(--secondary); }
+        .btn-csv { background-color: var(--secondary); }
+        .btn-clear { background-color: #6c757d; }
+        
+        .btn-clear-sig {
+            padding: 6px 12px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-clear-sig:hover {
+            background-color: #5a6268;
+        }
+
+        /* Ukrywanie przycisków podczas drukowania + FIX DLA APPLE WEBKIT */
+        @media print {
+            body { 
+                display: block !important; /* Fix dla ucinania stron w Safari */
+                background: white; 
+                padding: 0; 
+            }
+            .page-wrapper { 
+                display: block !important; /* Fix dla układu wielostronicowego */
+                box-shadow: none; 
+                padding: 0; 
+                max-width: 100%; 
+                border: none;
+            }
+            .actions, .sig-actions, .logo-wrapper { 
+                display: none !important; 
+            }
+            textarea { 
+                border: 1px solid #aaa; 
+                overflow: visible !important; /* Wymuszenie widoczności tekstu */
+                height: auto; 
+                resize: none;
+            }
+            .sig-canvas { 
+                border: 1px solid #000; 
+            }
+        }
+
+        /* Dostosowanie mobilne */
+        @media (max-width: 600px) {
+            .page-wrapper { padding: 15px; }
+            .actions { flex-direction: column; }
+            .btn { width: 100%; text-align: center; }
+            .sig-canvas { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-wrapper">
+        <a href="index.html" title="Powrót do strony głównej"><img src="logo.png" alt="Logo"></a>
+    </div>
+
+<div class="page-wrapper" id="content-to-export">
+    
+    <div id="t-contract" class="test-section">
+        <div class="test-header">
+            <h2>Kontrakt na życie</h2>
+        </div>
+
+        <div class="question-row">
+            <label><strong>Miejscowość i data:</strong></label>
+            <input type="text" id="cnt-loc" placeholder="Wpisz miejscowość i datę">
+        </div>
+
+        <div style="margin-bottom: 2rem; line-height: 1.6; font-size: 0.95rem;">
+            <p>Kiedy czujemy się przygnębieni, możemy myśleć o zadawaniu sobie bólu lub nawet zabiciu siebie.
+            Faktycznie, myśli samobójcze są jednym z możliwych objawów depresji. Takie myśli czy impulsy mogą się zdarzyć, ale bardzo ważne jest to, żebyśmy mogli o nich rozmawiać.
+            Najważniejsze jest twoje bezpieczeństwo. Dlatego będziemy rozmawiać o różnych trudnych sprawach, even o chęci odebrania sobie życia.
+            Za chwilę umówimy się, że będziemy robić wszystko, żeby poradzić sobie w trudnej sytuacji.
+            W umowie przyjrzymy się, kiedy miałeś/aś myśli samobójcze w przeszłości, jakiego rodzaju myśli pomogły Ci je przezwyciężyć i stworzymy plan reagowania w sytuacjach, kiedy takie myśli i impulsy pojawia się podczas trwania naszej wspólnej pracy.</p>
+        </div>
+
+        <div class="question-row">
+            <label class="q-text">Proszę opisz sytuację, jeżeli taka istnieje, w której pojawił się impuls do popełnienia samobójstwa w ostatnim okresie.
+            Jeśli było ich kilka, pomyśl o najgorszej z nich.</label>
+            <textarea id="cnt-q1" class="contract-input" rows="3"></textarea>
+        </div>
+
+        <h3>Co umożliwiło Ci poczuć się lepiej w ostatnim czasie?</h3>
+        
+        <div class="question-row">
+            <label class="q-text">Jakie myśli pozwoliły Ci poczuć się lepiej?</label>
+            <textarea id="cnt-q2" class="contract-input" rows="2"></textarea>
+        </div>
+        <div class="question-row">
+            <label class="q-text">Jacy ludzie pomogli Ci poczuć się lepiej?</label>
+            <textarea id="cnt-q3" class="contract-input" rows="2"></textarea>
+        </div>
+        <div class="question-row">
+            <label class="q-text">Czy coś z rzeczy, które robiłeś/aś pomogło Ci poczuć się lepiej?</label>
+            <textarea id="cnt-q4" class="contract-input" rows="2"></textarea>
+        </div>
+
+        <h3>Co prawdopodobnie mogłoby Ci pomóc, gdybyś zaczął/ęła mieć myśli samobójcze?</h3>
+
+        <div class="question-row">
+            <label class="q-text">Jakie myśli mogłyby Ci pomóc, aby przezwyciężyć samobójcze myśli lub impulsy?</label>
+            <textarea id="cnt-q5" class="contract-input" rows="2"></textarea>
+        </div>
+        <div class="question-row">
+            <label class="q-text">Jakich ludzi mógłbyś /mogłabyś w to włączyć?</label>
+            <textarea id="cnt-q6" class="contract-input" rows="2"></textarea>
+        </div>
+        <div class="question-row">
+            <label class="q-text">Jaki może być plan działania, jeśli będziesz mieć myśli lub impulsy samobójcze?</label>
+            <textarea id="cnt-q7" class="contract-input" rows="3"></textarea>
+        </div>
+
+        <hr style="margin: 2rem 0; border: 0; border-top: 1px solid var(--border);">
+
+        <div class="contract-agreement">
+            <p>Obiecuję że nie popełnię samobójstwa i będę rozmawiał/a o myślach i tendencjach samobójczych z lekarzem/psychologiem/terapeutą/pracownikiem socjalnym.</p>
+            <div class="sig-container">
+                <canvas id="canvas-sig1" class="sig-canvas" width="400" height="150"></canvas>
+                <div class="sig-actions">
+                    <button type="button" class="btn-clear-sig" onclick="clearCanvas('canvas-sig1')">Wyczyść podpis</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="contract-agreement">
+            <p>Obiecuję że powiem innym dorosłym, że bardzo źle się czuję i poproszę, żeby zawiadomili mojego lekarza/terapeutę.</p>
+            <div class="sig-container">
+                <canvas id="canvas-sig2" class="sig-canvas" width="400" height="150"></canvas>
+                <div class="sig-actions">
+                    <button type="button" class="btn-clear-sig" onclick="clearCanvas('canvas-sig2')">Wyczyść podpis</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="contract-agreement">
+            <p>Obiecuję, że jeżeli nikogo nie będzie w pobliżu, to w przypadku ostrych myśli samobójczych sam/a zgłoszę się na ostry dyżur do szpitala.</p>
+            <div class="sig-container">
+                <canvas id="canvas-sig3" class="sig-canvas" width="400" height="150"></canvas>
+                <div class="sig-actions">
+                    <button type="button" class="btn-clear-sig" onclick="clearCanvas('canvas-sig3')">Wyczyść podpis</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="contract-agreement">
+            <p>Obiecuję że nie posiadam dostępu do broni ani innych zabójczych środków.</p>
+            <div class="sig-container">
+                <canvas id="canvas-sig4" class="sig-canvas" width="400" height="150"></canvas>
+                <div class="sig-actions">
+                    <button type="button" class="btn-clear-sig" onclick="clearCanvas('canvas-sig4')">Wyczyść podpis</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-row" style="margin-top: 2rem;">
+            <label><strong>Osoba pomagająca:</strong></label>
+            <input type="text" id="cnt-therapist" style="margin-top: 5px;">
+        </div>
+        <div class="clinician-notes-area"><label>Notatki:</label><textarea id="note-contract"></textarea></div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-calc" onclick="calculateCurrent()">Oblicz wynik</button>
+        <button class="btn btn-print" onclick="window.print()">Drukuj (Pełny)</button>
+        <button class="btn btn-clear" onclick="clearData()">Wyczyść dane</button>
+    </div>
+</div>
+
+<script>
+    // --- OBSŁUGA PODPISÓW (CANVAS) ---
+    function initSignatureCanvas(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        let isDrawing = false;
+
+        function getCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            let clientX, clientY;
+
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            e.preventDefault();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getCoordinates(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            e.preventDefault();
+        }
+
+        function stopDrawing(e) {
+            if (isDrawing) {
+                ctx.closePath();
+                isDrawing = false;
+            }
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+    }
+
+    // Inicjalizacja komponentów po załadowaniu strony
+    document.addEventListener("DOMContentLoaded", function() {
+        initSignatureCanvas('canvas-sig1');
+        initSignatureCanvas('canvas-sig2');
+        initSignatureCanvas('canvas-sig3');
+        initSignatureCanvas('canvas-sig4');
+
+        // --- SKRYPT DYNAMICZNEGO ROZCIĄGANIA PÓL TEXTAREA DLA SYSTEMÓW APPLE ---
+        const textareas = document.querySelectorAll('textarea');
+        
+        function adjustHeight(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
+        textareas.forEach(textarea => {
+            // Dostosowanie przy pisaniu
+            textarea.addEventListener('input', function() {
+                adjustHeight(this);
+            });
+            // Wstępne dostosowanie na starcie
+            adjustHeight(textarea);
+        });
+
+        // Wymuszenie przeliczenia wysokości tuż przed wywołaniem okna druku w Safari
+        window.addEventListener('beforeprint', function() {
+            textareas.forEach(textarea => adjustHeight(textarea));
+        });
+    });
+
+    // Czyszczenie pojedynczego podpisu
+    window.clearCanvas = function(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if(canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    };
+
+    window.calculateCurrent = function() {
+        alert("Ten formularz nie wymaga obliczeń matematycznych. Skup się na wypełnieniu i podpisaniu kontraktu.");
+    };
+
+    // Eksport do PDF
+    window.exportPDF = function() {
+        const element = document.getElementById('content-to-export');
+        const opt = {
+            margin:       10,
+            filename:     'Kontrakt_na_zycie.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        const actionsElements = document.querySelectorAll('.actions, .sig-actions');
+        actionsElements.forEach(el => el.style.display = 'none');
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            actionsElements.forEach(el => el.style.display = '');
+        });
+    };
+
+    // Eksport do CSV
+    window.exportCSV = function() {
+        const data = [
+            ["Pole", "Wartość"],
+            ["Miejscowość i data", document.getElementById('cnt-loc').value],
+            ["Opis sytuacji", document.getElementById('cnt-q1').value],
+            ["Jakie myśli pomogły", document.getElementById('cnt-q2').value],
+            ["Jacy ludzie pomogli", document.getElementById('cnt-q3').value],
+            ["Jakie rzeczy pomogły", document.getElementById('cnt-q4').value],
+            ["Jakie myśli mogłyby pomóc", document.getElementById('cnt-q5').value],
+            ["Jakich ludzi można włączyć", document.getElementById('cnt-q6').value],
+            ["Plan działania", document.getElementById('cnt-q7').value],
+            ["Podpis osoby pomagającej (imię/nazwisko)", document.getElementById('cnt-therapist').value],
+            ["Notatki klinicysty", document.getElementById('note-contract').value]
+        ];
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        data.forEach(function(rowArray) {
+            const cleanRow = rowArray.map(item => `"${(item || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`);
+            csvContent += cleanRow.join(";") + "\r\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Kontrakt_dane.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Czyszczenie całego formularza
+    window.clearData = function() {
+        if(confirm("Czy na pewno chcesz wyczyścić cały formularz i podpisy?")) {
+            const inputs = document.querySelectorAll('#t-contract input[type="text"], #t-contract textarea');
+            inputs.forEach(input => {
+                input.value = '';
+                // Reset wysokości pól textarea do domyślnych wartości z CSS
+                if(input.tagName.toLowerCase() === 'textarea') {
+                    input.style.height = '';
+                }
+            });
+            clearCanvas('canvas-sig1');
+            clearCanvas('canvas-sig2');
+            clearCanvas('canvas-sig3');
+            clearCanvas('canvas-sig4');
+        }
+    };
+</script>
+</body>
+</html>

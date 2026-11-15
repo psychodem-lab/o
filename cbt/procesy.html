@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERAPIA OPARTA NA PROCESACH</title>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=48&id=111447&format=png&color=228BE6">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #network-container { width: 100%; height: 600px; background: #fdfdfd; border-radius: 12px; border: 2px solid #cbd5e1; }
+        .sidebar-scroll { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 10px; }
+        
+        @media print {
+            @page {
+                size: landscape; margin: 0.5cm;
+            }
+            header, aside, .no-print, button, label, input, select, textarea, .range-container { display: none !important; }
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            main { width: 100% !important; grid-column: span 12 / span 12 !important; margin: 0 !important; padding: 0 !important; }
+            
+            #network-container { 
+                border: none !important; height: 95vh !important;
+                width: 100% !important;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .print\:shadow-none { box-shadow: none !important; border: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-900">
+
+    <header class="bg-slate-900 text-white p-4 shadow-xl border-b-4 border-indigo-600 no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-black italic uppercase tracking-tighter">PBT <span class="text-indigo-400">MODEL SIECIOWY</span></h1>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded font-bold uppercase transition">Drukuj Raport</button>
+                <button onclick="exportSession()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold uppercase transition">Eksportuj</button>
+                <label class="text-[10px] bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded font-bold cursor-pointer uppercase transition">
+                    Importuj <input type="file" id="importFile" class="hidden" accept=".json" onchange="importSession(event)">
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 px-4">
+        
+        <aside class="xl:col-span-4 space-y-4 sidebar-scroll no-print">
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">1. Dodaj proces do sieci</h2>
+                
+                <div class="space-y-4 italic">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Treść procesu:</label>
+                        <textarea id="proc-label" rows="2" placeholder="np. Myśl 'nie dam rady'&#10;(Enter = nowa linia)" class="w-full p-2 border rounded bg-slate-50 outline-none focus:ring-2 ring-indigo-200 resize-y"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400">Wymiar EEMM:</label>
+                            <select id="proc-dim" class="w-full p-2 text-xs border rounded bg-white">
+                                <option value="#f59e0b">Uwaga (Pomarańczowy)</option>
+                                <option value="#3b82f6">Poznanie (Niebieski)</option>
+                                <option value="#8b5cf6">Ja (Fioletowy)</option> 
+                                <option value="#ef4444">Afekt (Czerwony)</option>   
+                                <option value="#10b981">Zachowanie (Zielony)</option>
+                                <option value="#06b6d4">Motywacja (Morski)</option>
+                                <option value="#475569">Biofizjologiczny (Szary)</option>
+                                <option value="#475569">Kontekst (Szary)</option>
+                                <option value="#475569">Społeczno-kulturowy (Szary)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400">Funkcja (Status):</label>
+                            <select id="proc-status" class="w-full p-2 text-xs border rounded bg-white font-bold text-slate-700">
+                                <option value="#fee2e2">Proces PROBLEMOWY</option>
+                                <option value="#dcfce7">ZASÓB / Cel terapii</option>
+                                <option value="#f1f5f9">Neutralny / Kontekst</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="addNode()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg hover:bg-black transition-all shadow-lg uppercase text-xs">Dodaj Proces</button>
+                    
+                    <button onclick="toggleQuestionsModal()" class="w-full mt-2 bg-indigo-50 text-indigo-700 border border-indigo-200 font-black py-2 rounded-lg hover:bg-indigo-100 transition-all uppercase text-[10px]">Przykładowe pytania (EEMM)</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">2. Połącz procesy</h2>
+                <div class="space-y-3">
+                    <select id="edge-from" class="w-full p-2 text-xs border rounded"></select>
+                    <select id="edge-to" class="w-full p-2 text-xs border rounded"></select>
+                    <select id="edge-label" class="w-full p-2 text-xs border rounded font-bold bg-indigo-50">
+                        <option value="NASILA">NASILA / WYZWALA </option>
+                        <option value="OSŁABIA">OSŁABIA </option>
+                        <option value="WZAJEMNE">WZAJEMNE WZMOCNIENIE </option>
+                    </select>
+                    <div class="range-container">
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Wielkość grotu strzałki:</label>
+                        <input type="range" id="edge-weight" min="0.5" max="3" step="0.1" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <button onclick="addConnection()" class="w-full bg-indigo-600 text-white font-black py-2 rounded shadow hover:bg-indigo-700 transition uppercase text-[10px]">Utwórz relację</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="xl:col-span-8 space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-lg border border-slate-200 print:shadow-none print:border-none">
+                <div id="network-container"></div>
+                
+                <div class="mt-4 p-4 bg-slate-50 rounded-lg border flex flex-wrap gap-6 items-center justify-center print:bg-white">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 border-4 border-slate-400 bg-[#fee2e2] rounded-full"></span>
+                        <span class="text-[10px] font-bold uppercase">Problem</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 border-4 border-slate-400 bg-[#dcfce7] rounded-full"></span>
+                        <span class="text-[10px] font-bold uppercase">Zasób</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-1 h-4 bg-blue-500"></span>
+                        <span class="text-[10px] font-bold uppercase text-blue-600">Kolor obramowania = Wymiar EEMM</span>
+                    </div>
+                    <button onclick="deleteSelected()" class="text-[10px] text-slate-500 font-bold uppercase ml-auto hover:text-red-600 no-print border border-slate-300 rounded px-2 py-1 bg-white">Usuń zaznaczone</button>
+                    
+                    <button onclick="resetAll()" class="text-[10px] text-red-500 font-bold uppercase ml-4 no-print">Resetuj wszystko</button>
+                    <button onclick="undoLast()" class="text-[10px] text-orange-500 font-bold uppercase ml-4 no-print">Cofnij</button>
+                </div>
+                <p class="text-center text-slate-400 text-xs mt-2 no-print italic">Wskazówka: Kliknij dwukrotnie na proces na planszy, aby edytować jego treść.</p>
+            </div>
+        </main>
+    </div>
+
+    <div id="questionsModal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden max-h-[85vh]">
+            <div class="bg-slate-100 p-4 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase text-sm tracking-wider">Przykładowe pytania (Wymiary EEMM)</h3>
+                <button onclick="toggleQuestionsModal()" class="text-slate-500 hover:text-red-500 font-bold text-lg leading-none">&times;</button>
+            </div>
+            
+            <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+                <div class="w-full md:w-1/3 bg-slate-50 border-r border-slate-200 p-3 overflow-y-auto space-y-1">
+                    <button onclick="showQuestion('uwaga')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-amber-600 hover:bg-amber-100 transition">Uwaga</button>
+                    <button onclick="showQuestion('poznanie')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-blue-600 hover:bg-blue-100 transition">Poznanie</button>
+                    <button onclick="showQuestion('ja')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-purple-600 hover:bg-purple-100 transition">Ja</button>
+                    <button onclick="showQuestion('afekt')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-red-600 hover:bg-red-100 transition">Afekt</button>
+                    <button onclick="showQuestion('zachowanie')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-emerald-600 hover:bg-emerald-100 transition">Zachowanie</button>
+                    <button onclick="showQuestion('motywacja')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-cyan-600 hover:bg-cyan-100 transition">Motywacja</button>
+                    <button onclick="showQuestion('bio')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-slate-600 hover:bg-slate-200 transition">Biofizjologiczny</button>
+                    <button onclick="showQuestion('kontekst')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-slate-600 hover:bg-slate-200 transition">Kontekst</button>
+                    <button onclick="showQuestion('spoleczny')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-slate-600 hover:bg-slate-200 transition">Społeczno-kulturowy</button>
+                </div>
+                
+                <div class="w-full md:w-2/3 p-6 overflow-y-auto bg-white">
+                    <div id="questionContent" class="text-sm text-slate-700 space-y-3">
+                        <p class="italic text-slate-400 text-center mt-10">Wybierz wymiar z listy po lewej stronie, aby wyświetlić pytania przewodne pomagające w identyfikacji procesów.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3 border-t text-right">
+                <button onclick="toggleQuestionsModal()" class="bg-slate-800 text-white px-4 py-2 rounded font-bold uppercase text-[10px] hover:bg-slate-700">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nodes = new vis.DataSet([]);
+        let edges = new vis.DataSet([]);
+        let historyStack = [];
+        const container = document.getElementById('network-container');
+        const data = { nodes: nodes, edges: edges };
+        const options = {
+            nodes: {
+                shape: 'dot',
+                size: 35,
+                font: { size: 12, face: 'Verdana', color: '#1e293b' },
+                borderWidth: 5,
+                shadow: true,
+                // ZMIANA: Limit szerokości węzła zmuszający tekst do zawijania
+                widthConstraint: { maximum: 160 } 
+            },
+            edges: {
+                font: { size: 10, background: '#ffffff', align: 'middle' },
+                smooth: { type: 'continuous', roundness: 0.5 }
+            },
+            physics: {
+                enabled: false,
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    springLength: 200,
+                    springConstant: 0.04
+                }
+            },
+            interaction: {
+                dragNodes: true, dragView: true, zoomView: true, multiselect: true
+            }
+        };
+        const network = new vis.Network(container, data, options);
+
+        // ZMIANA: Nasłuchiwanie dwukrotnego kliknięcia w celu edycji
+        network.on("doubleClick", function (params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                const nodeToEdit = nodes.get(nodeId);
+                
+                // Okno dialogowe przeglądarki do zmiany tekstu
+                const newLabel = prompt("Edytuj treść procesu:", nodeToEdit.label);
+                
+                if (newLabel !== null && newLabel.trim() !== "") {
+                    // Dodajemy stary stan do historii "Cofnij"
+                    historyStack.push({ type: 'edit', id: nodeId, oldLabel: nodeToEdit.label });
+                    // Aktualizujemy etykietę węzła
+                    nodes.update({ id: nodeId, label: newLabel });
+                    updateSelects();
+                }
+            }
+        });
+
+        function addNode() {
+            const label = document.getElementById('proc-label').value;
+            const dimColor = document.getElementById('proc-dim').value;
+            const statusColor = document.getElementById('proc-status').value;
+
+            if (!label) return;
+            
+            const newNodeId = Date.now();
+            nodes.add({
+                id: newNodeId,
+                label: label,
+                color: {
+                    border: dimColor,
+                    background: statusColor,
+                    highlight: { border: dimColor, background: statusColor }
+                }
+            });
+            historyStack.push({ type: 'node', id: newNodeId });
+            document.getElementById('proc-label').value = "";
+            updateSelects();
+        }
+
+        function addConnection() {
+            const from = document.getElementById('edge-from').value;
+            const to = document.getElementById('edge-to').value;
+            const label = document.getElementById('edge-label').value;
+            const arrowScale = parseFloat(document.getElementById('edge-weight').value);
+            
+            if (!from || !to) return;
+            // Ustalanie typów strzałek na podstawie relacji
+            let arrowTypeTo = 'arrow';
+            // Domyślnie zamknięty grot
+            let arrowTypeFrom = 'arrow';
+            let enableFrom = false;
+            let edgeColor = '#dc3545';
+
+            if (label === 'OSŁABIA') {
+                arrowTypeTo = 'vee';
+                // Otwarty grot (kształt V)
+                edgeColor = '#28a745';
+            } else if (label === 'WZAJEMNE') {
+                enableFrom = true;
+                // Wzajemne - strzałki po obu stronach (zamknięte)
+                edgeColor = '#343a40';
+            }  else if (label === 'NASILA') {
+                edgeColor = '#dc3545';
+            }
+
+            const newEdgeIds = edges.add({
+                from: from,
+                to: to,
+                label: label,
+                width: 2, // Stała grubość połączenia
+                color: {
+                    color: edgeColor,
+                    highlight: edgeColor,
+                    hover: edgeColor
+                },
+                dashes: false, // Brak przerywanych linii
+                arrows: {
+                    to: { enabled: true, type: arrowTypeTo, scaleFactor: arrowScale },
+                    from: { enabled: enableFrom, type: arrowTypeFrom, scaleFactor: arrowScale }
+                }
+            });
+            const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
+            historyStack.push({ type: 'edge', id: edgeId });
+        }
+
+        function updateSelects() {
+            const fromSelect = document.getElementById('edge-from');
+            const toSelect = document.getElementById('edge-to');
+            fromSelect.innerHTML = ""; toSelect.innerHTML = "";
+            nodes.forEach(node => {
+                let opt = `<option value="${node.id}">${node.label.substring(0, 30)}${node.label.length > 30 ? '...' : ''}</option>`;
+                fromSelect.innerHTML += opt; toSelect.innerHTML += opt;
+            });
+        }
+
+        function deleteSelected() {
+            const selectedNodes = network.getSelectedNodes();
+            const selectedEdges = network.getSelectedEdges();
+            if (selectedNodes.length > 0) { nodes.remove(selectedNodes); updateSelects(); }
+            if (selectedEdges.length > 0) { edges.remove(selectedEdges); }
+        }
+
+        function undoLast() {
+            if (historyStack.length === 0) return;
+            const lastAction = historyStack.pop();
+            
+            if (lastAction.type === 'edge') {
+                try { edges.remove(lastAction.id); } catch (e) { }
+            } else if (lastAction.type === 'node') {
+                try { nodes.remove(lastAction.id); updateSelects(); } catch (e) { }
+            } else if (lastAction.type === 'edit') {
+                // ZMIANA: Obsługa cofania zmiany tekstu w procesie
+                try { nodes.update({ id: lastAction.id, label: lastAction.oldLabel }); updateSelects(); } catch (e) { }
+            }
+        }
+        
+        function resetAll() {
+            nodes.clear();
+            edges.clear();
+            historyStack = [];
+            updateSelects();
+        }
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === "Delete" || e.key === "Backspace") {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                    deleteSelected();
+                }
+            }
+        });
+
+        function exportSession() {
+            const positions = network.getPositions();
+            const nodesData = nodes.get().map(node => {
+                if (positions[node.id]) {
+                    return { ...node, x: positions[node.id].x, y: positions[node.id].y };
+                }
+                return node;
+            });
+            const data = JSON.stringify({ nodes: nodesData, edges: edges.get() });
+            const blob = new Blob([data], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `PBT-Sesja-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function importSession(e) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imported = JSON.parse(event.target.result);
+                nodes.clear(); edges.clear(); historyStack = [];
+                nodes.add(imported.nodes);
+                edges.add(imported.edges);
+                setTimeout(() => network.fit(), 100);
+                updateSelects();
+            };
+            reader.readAsText(e.target.files[0]);
+        }
+
+        // --- Logika Panelu Pytań (Modal) ---
+        function toggleQuestionsModal() {
+            const modal = document.getElementById('questionsModal');
+            modal.classList.toggle('hidden');
+        }
+
+        const eemmQuestions = {
+            'uwaga': `<h4 class="font-black text-amber-600 text-lg mb-2">UWAGA (Orientacja)</h4>
+                      <ul class="list-disc pl-5 space-y-2">
+                        <li>Badanie problemów związanych ze zmiennością: Na czym klientka/klient skupia uwagę, kiedy zmaga się ze swoimi trudnościami? Czy wyczuwasz sztywność związaną z jej/jego procesem kierowania uwagą (np. niemożność utrzymania koncentracji lub przeniesienia uwagi z konkretnego obszaru, pochłonięcie roztrząsaną przeszłością bądź potencjalną przyszłością i pomijanie teraźniejszości, zbytnie poszerzanie lub zawężanie zakresu uwagi)?</li>
+                        <li>Badanie problemów związanych z selekcją: Jakie funkcje pełnią wzorce kierowania uwagą w ogólnej sieci klientki/klienta? Rozpocznij od wzorców dominujących, nawracających i nieadaptacyjnych, a potem przejdź do tych bardziej adaptacyjnych, elastycznych, płynnych i świadomych.</li>
+                        <li>Badanie problemów związanych z utrzymaniem: W jaki sposób dominujące wzorce kierowania uwagą sprzyjają podtrzymywaniu problemów klientki/klienta w modelu sieciowym? Dlaczego bardziej adaptacyjne wzorce nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
+                      </ul>`,
+            'poznanie': `<h4 class="font-black text-blue-600 text-lg mb-2">POZNANIE (Zrozumienie)</h4>
+                         <ul class="list-disc pl-5 space-y-2">
+                           <li>Badanie problemów związanych ze zmiennością: Jakie myśli pojawiają się u klientki/klienta, kiedy zmaga się ze swoimi trudnościami, i jakie strategie radzenia sobie z nimi klientka/klient wtedy stosuje? Które stały się dominujące? Czy wyczuwasz sztywność związaną z konkretnymi procesami poznawczymi (np. dominujące schematy, nawracające negatywne myśli) i/lub formami przystosowania się do nich (np. traktowanie myśli tak, jakby były zgodne z prawdą)?</li>
+                           <li>Badanie problemów związanych z selekcją: Jakie funkcje pełnią owe wzorce myślenia i/lub formy przystosowania się do nich? Rozpocznij od myśli i form dominujących, nawracających i nieadaptacyjnych, a potem przejdź do bardziej adaptacyjnych (bez względu na to, jak rzadko się pojawiają).</li>
+                           <li>Badanie problemów związanych z utrzymaniem: W jaki sposób dominujące wzorce myślenia i formy przystosowania się do nich podtrzymują i nasilają problemy klientki/klienta w modelu sieciowym? Dlaczego myśli i formy adaptacyjne nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
+                         </ul>`,
+            'ja': `<h4 class="font-black text-purple-600 text-lg mb-2">JA (Poczucie siebie)</h4>
+                   <ul class="list-disc pl-5 space-y-2">
+                     <li>Badanie problemów związanych ze zmiennością: Jakie poczucie Ja lub jaki obraz Ja można rozpoznać u klientki/klienta wtedy, kiedy zmaga się ze swoimi trudnościami, albo jakiego poczucia lub obrazu Ja brak, choć mogłyby być pomocne? Czy wyczuwasz jakąś sztywność lub zauważasz brak zdrowej zmienności w obszarze Ja?</li>
+                     <li>Badanie problemów związanych z selekcją: Jakie funkcje pełni owo problematyczne poczucie Ja? Jeśli uwidacznia się zdrowsze poczucie Ja lub zdrowszy obraz Ja, jakie funkcje może pełnić?</li>
+                     <li>Badanie problemów związanych z utrzymaniem: W jaki sposób owe dominujące wzorce odnoszące się do Ja wspierają, podtrzymują lub nasilają problemy klientki/klienta w modelu sieciowym? Dlaczego bardziej adaptacyjne poczucie Ja lub bardziej adaptacyjny obraz Ja nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
+                   </ul>`,
+            'afekt': `<h4 class="font-black text-red-600 text-lg mb-2">AFEKT (Odczuwanie)</h4>
+                      <ul class="list-disc pl-5 space-y-2">
+                        <li>Badanie problemów związanych ze zmiennością: Jakie emocje pojawiają się u klientki/klienta, kiedy zmaga się ze swoimi trudnościami, i jakie strategie radzenia sobie z nimi klientka/klient wtedy stosuje? Które stały się dominujące? Czy wyczuwasz sztywność związaną z konkretnymi wzorcami emocjonalnymi i/lub formami przystosowania się do nich (np. ograniczony zakres afektu, dominujące strategie regulacji emocji)?</li>
+                        <li>Badanie problemów związanych z selekcją: Jakie funkcje pełnią owe emocje i/lub wzorce radzenia sobie z nimi? Rozpocznij od emocji i wzorców dominujących, nawracających i nieadaptacyjnych, a potem przejdź do bardziej adaptacyjnych (bez względu na to, jak rzadko się pojawiają).</li>
+                        <li>Badanie problemów związanych z utrzymaniem: W jaki sposób dominujące wzorce emocji i formy przystosowania się do uczuć podtrzymują i nasilają problemy klientki/klienta w modelu sieciowym? Dlaczego emocje i formy adaptacyjne nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
+                      </ul>`,
+            'zachowanie': `<h4 class="font-black text-emerald-600 text-lg mb-2">ZACHOWANIE (Działanie)</h4>
+                           <ul class="list-disc pl-5 space-y-2">
+                             <li>Badanie problemów związanych ze zmiennością: Jakie wzorce zachowań jawnych można rozpoznać u klientki/klienta wtedy, kiedy zmaga się ze swoimi trudnościami, albo jakich brak, choć mogłyby być pomocne? Czy wyczuwasz jakąś sztywność albo zauważasz brak zdrowej zmienności w obszarze jawnych wzorców behawioralnych lub nawyków?</li>
+                             <li>Badanie problemów związanych z selekcją: Jakie funkcje pełnią owe problematyczne formy zachowań jawnych w sieci klienta? Jeśli pojawiają się bardziej adaptacyjne formy zachowań jawnych, jakie funkcje mogą pełnić?</li>
+                             <li>Badanie problemów związanych z utrzymaniem: W jaki sposób owe dominujące wzorce zachowań jawnych wspierają, podtrzymują lub nasilają problemy klientki/klienta w modelu sieciowym? Dlaczego bardziej adaptacyjne wzorce nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
+                           </ul>`,
+            'motywacja': `<h4 class="font-black text-cyan-600 text-lg mb-2">MOTYWACJA (Pragnienie)</h4>
+                          <ul class="list-disc pl-5 space-y-2">
+                            <li>Badanie problemów związanych ze zmiennością: Czy istnieją jakieś charakterystyczne nieadaptacyjne wzorce motywacyjne, które uwidaczniają się wtedy, kiedy klientka/klient zmaga się ze swoimi trudnościami, albo wzorce bardziej adaptacyjne, których brak wtedy, kiedy mogłyby być pomocne? Czy wyczuwasz jakąś sztywność lub zauważasz brak zdrowej zmienności w obszarze motywacji?</li>
+                            <li>Badanie problemów związanych z selekcją: Jakie funkcje pełnią owe nieadaptacyjne formy motywacji? Jeśli istnieją zdrowsze formy motywacji, jakie funkcje mogą pełnić?</li>
+                            <li>Badanie problemów związanych z utrzymaniem: W jaki sposób owe dominujące wzorce w obszarze motywacji wspierają, podtrzymują lub nasilają problemy klientki/klienta w modelu sieciowym? Dlaczego bardziej adaptacyjne formy motywacji nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
+                          </ul>`,
+            'bio': `<h4 class="font-black text-slate-600 text-lg mb-2">BIOFIZJOLOGICZNY</h4>
+                    <ul class="list-disc pl-5 space-y-2">
+                      <li>Badanie problemów związanych ze zmiennością: Jakie wzorce zachowania istotnego z perspektywy biofizjologicznej można rozpoznać u klientki/klienta wtedy, kiedy zmaga się ze swoimi trudnościami, albo jakich brak, choć mogłyby być pomocne? Czy wyczuwasz jakąś sztywność lub zauważasz brak zdrowej zmienności na poziomie zachowań związanych z biofizjologią (np. niepowodzenie prób odżywiania się zdrowo, niechęć do badania możliwości podjęcia aktywności fizycznej)?</li>
+                      <li>Badanie problemów związanych z selekcją: Jakie funkcje pełnią w sieci klientki/klienta owe problematyczne zachowania związane z biofizjologią? Na przykład: czy stronienie od ćwiczeń pozwala uniknąć wstydu związanego z własnym ciałem? Czy wzorce złego odżywiania się są uwarunkowane kulturowo? Jeśli lub kiedy pojawiają się formy bardziej adaptacyjne, jakie funkcje mogą pełnić?</li>
+                      <li>Badanie problemów związanych z utrzymaniem: W jaki sposób owe dominujące wzorce związane z poziomem biofizjologicznym wspierają, podtrzymują lub nasilają problemy klientki/klienta w modelu sieciowym? Dlaczego bardziej adaptacyjne wzorce nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
+                      <li>Aby zbadać powyższe kwestie, trzeba dobrze poznać główne zachowania związane z poziomem biofizjologicznym. Służące temu pytania mają charakter bardziej zdroworozsądkowy. Poniżej podajemy przykłady.   Adaptacyjne i nieadaptacyjne wzorce diety   Co zdrowego/niezdrowego jada pani/pan na co dzień?   Jak często i kiedy przejada się pani/pan albo ogranicza jedzenie?   Co pani/pan pije? W jakich ilościach?   Adaptacyjne i nieadaptacyjne wzorce aktywności fizycznej   Czy pani/pan ćwiczy? Jak często?   Jaki rodzaj ćwiczeń pani/pan wykonuje?   Jak intensywnie pani/pan ćwiczy?   Od jak dawna pani/pan ćwiczy/nie ćwiczy?   Sen   Jak pani/pan sypia?   Czy ma pani/pan trudności z zaśnięciem?   O której godzinie pani/pan kładzie się spać / budzi się?   Czy po przebudzeniu czuje się pani wypoczęta / pan wypoczęty?   Inne nawyki związane ze zdrowiem   Czy zażywa pani/pan jakieś leki? Jeśli tak, to jak często i w jakich dawkach?   Ile czasu dziennie spędza pani/pan w pozycji siedzącej?   Czy pani/pan medytuje? Jeśli tak, to jak często i jak długo?   Ile czasu spędza pani/pan na powietrzu?   W jaki sposób się pani/pan relaksuje?   </li>
+                    </ul>`,
+            'kontekst': `<h4 class="font-black text-slate-600 text-lg mb-2">KONTEKST FIZYCZNY</h4>
+                         <ul class="list-disc pl-5 space-y-2">
+                           <li>Badanie problemów związanych ze zmiennością: Jakie wzorce społeczno-kulturowe można rozpoznać u klientki/klienta wtedy, kiedy zmaga się ze swoimi trudnościami, albo jakich brak, choć mogłyby być pomocne? Czy wyczuwasz jakąś sztywność lub zauważasz brak zdrowej zmienności na poziomie społeczno-kulturowym?</li>
+                           <li>Badanie problemów związanych z selekcją: Jakie funkcje pełnią w sieci klientki/klienta owe problematyczne wzorce społeczno-kulturowe? Jeśli lub kiedy pojawiają się formy bardziej adaptacyjne, jakie funkcje mogą pełnić?</li>
+                           <li>Badanie problemów związanych z utrzymaniem: W jaki sposób owe dominujące wzorce związane z poziomem społeczno-kulturowym wspierają, podtrzymują lub nasilają problemy klientki/klienta w modelu sieciowym? Dlaczego bardziej adaptacyjne wzorce nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
+                         </ul>`,
+            'spoleczny': `<h4 class="font-black text-slate-600 text-lg mb-2">SPOŁECZNO-KULTUROWY</h4>
+                          <ul class="list-disc pl-5 space-y-2">
+                            <li>Aby zbadać powyższe kwestie, trzeba dobrze poznać główne zachowania związane z poziomem społeczno-kulturowym. Służące temu pytania mają charakter bardziej zdroworozsądkowy. Oto przykłady.   Przekonania kulturowe   Jakie jest pani/pana pochodzenie kulturowe?   Jakie są pani/pana przekonania religijne?   Jak w kulturze, z której pani/pan pochodzi, myśli się o (wrażliwy temat mający związek z siecią)?   Jak rozmawia się o takich problemach w pani/pana rodzinie lub w gronie przyjaciół?   Czy ma pani/pan poczucie, że narusza normy kulturowe lub że musi to zrobić aby móc się zająć obszarem problemowym?   Wsparcie społeczne   Jak opisałaby pani / opisałby pan swoje relacje z rodziną i przyjaciółmi?   W jakim stopniu może pani/pan być sobą w kontaktach z rodziną i przyjaciółmi?   Ilu ma pani/pan bliskich przyjaciół?   Kogo prosi pani/pan o pomoc w obliczu problemów osobistych?   Stygmatyzacja   Jakie ma pani/pan doświadczenia z uprzedzeniami?   Czy była pani/był pan kiedyś obiektem uprzedzeń?   W jaki sposób panią/pana stygmatyzowano?   W jaki sposób uprzedzenia dotknęły panią/pana osobiście?</li>
+                          </ul>`
+        };
+
+        function showQuestion(dim) {
+            document.getElementById('questionContent').innerHTML = eemmQuestions[dim];
+        }
+    </script>
+</body>
+</html>

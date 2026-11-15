@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarcza Wartości - Wydruk ACT</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #ef4444;
+            --blue: #3b82f6;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        h1 { font-size: 1.6rem; text-align: center; color: var(--primary); margin-top: 0; }
+
+        .instruction-box {
+            background: #eff6ff;
+            border-left: 4px solid var(--blue);
+            padding: 15px;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+            touch-action: none;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .plan-section {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            background: #fffafa;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            width: 100%;
+            max-width: 650px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-print { background: var(--blue); color: white; }
+        .btn-reset { background: #94a3b8; color: white; }
+
+        .score-list {
+            margin-top: 15px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        /* STYLE DO DRUKU */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
+            .buttons, .instruction-box { display: none !important; }
+            .plan-section { display: block !important; border-color: #000; }
+            canvas { border: 1px solid #000; }
+            textarea { border: 1px solid #000; overflow: visible; }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.3rem; }
+            .container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="printable">
+    <h1>Tarcza Wartości (The Bull's Eye)</h1>
+    
+    <div class="instruction-box">
+        <strong>Instrukcja:</strong> Kliknij w każdym z 4 pól tarczy. Im bliżej środka („dziesiątki”) się znajdziesz, tym bardziej Twoje działania są spójne z Twoimi wartościami w danej sferze życia.
+    </div>
+
+    <div class="canvas-wrapper">
+        <canvas id="bullsEyeCanvas" width="600" height="600"></canvas>
+    </div>
+
+    <div id="scores" class="score-list"></div>
+
+    <div id="planSection" class="plan-section">
+        <h3 id="worstAreaTitle" style="margin:0; color: var(--accent);">Obszar do pracy</h3>
+        <p style="margin: 8px 0;">Zidentyfikowano to pole jako najbardziej oddalone od Twoich wartości. Jaki konkretny krok podejmiesz w tym tygodniu?</p>
+        <textarea id="behavioralStep" placeholder="Wpisz tutaj swój plan działania..."></textarea>
+    </div>
+</div>
+
+<div class="buttons">
+    <button class="btn-reset" onclick="resetAll()">Resetuj tarczę</button>
+    <button class="btn-print" onclick="window.print()">Drukuj arkusz</button>
+</div>
+
+<script>
+    const canvas = document.getElementById('bullsEyeCanvas');
+    const ctx = canvas.getContext('2d');
+    const planSection = document.getElementById('planSection');
+    const scoresDiv = document.getElementById('scores');
+
+    let shots = {
+        "RELACJE": null,
+        "PRACA / NAUKA": null,
+        "ZDROWIE": null,
+        "CZAS WOLNY": null
+    };
+
+    function draw() {
+        const size = 600;
+        const center = 300;
+        const radius = 270;
+
+        ctx.clearRect(0, 0, size, size);
+
+        // Kręgi tarczy
+        for(let i=5; i>=1; i--) {
+            ctx.beginPath();
+            ctx.arc(center, center, (radius/5)*i, 0, Math.PI*2);
+            ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+            ctx.fill();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.stroke();
+        }
+
+        // Linie podziału
+        ctx.beginPath();
+        ctx.moveTo(center-radius, center); ctx.lineTo(center+radius, center);
+        ctx.moveTo(center, center-radius); ctx.lineTo(center, center+radius);
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Etykiety sfer
+        ctx.font = "bold 22px Arial";
+        ctx.fillStyle = "#1e293b";
+        ctx.textAlign = "center";
+        ctx.fillText("RELACJE", center - 130, center - 130);
+        ctx.fillText("PRACA / NAUKA", center + 130, center - 130);
+        ctx.fillText("CZAS WOLNY", center - 130, center + 150);
+        ctx.fillText("ZDROWIE", center + 130, center + 150);
+
+        // Rysowanie oddanych strzałów
+        Object.entries(shots).forEach(([name, data]) => {
+            if(data) {
+                ctx.beginPath();
+                ctx.arc(data.x, data.y, 14, 0, Math.PI*2);
+                ctx.fillStyle = "#ef4444";
+                ctx.fill();
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+        });
+    }
+
+    // Obsługa dotyku i myszki (PointerEvents)
+    canvas.addEventListener('pointerdown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+
+        const dist = Math.sqrt(Math.pow(x-300, 2) + Math.pow(y-300, 2));
+
+        if(dist <= 270) {
+            let area = "";
+            if(x < 300 && y < 300) area = "RELACJE";
+            else if(x >= 300 && y < 300) area = "PRACA / NAUKA";
+            else if(x < 300 && y >= 300) area = "CZAS WOLNY";
+            else area = "ZDROWIE";
+
+            shots[area] = {x, y, dist};
+            draw();
+            updateResults();
+        }
+    });
+
+    function updateResults() {
+        let output = "<strong>Wyniki spójności:</strong><br>";
+        let maxDist = -1;
+        let worstArea = "";
+
+        Object.entries(shots).forEach(([name, data]) => {
+            if(data) {
+                const score = Math.round(100 - (data.dist/270*100));
+                output += `• ${name}: ${score}%<br>`;
+                if(data.dist > maxDist) {
+                    maxDist = data.dist;
+                    worstArea = name;
+                }
+            }
+        });
+
+        scoresDiv.innerHTML = output;
+        if(worstArea) {
+            planSection.style.display = "block";
+            document.getElementById('worstAreaTitle').innerText = `Cel do zmiany: ${worstArea}`;
+        }
+    }
+
+    function resetAll() {
+        shots = { "RELACJE": null, "PRACA / NAUKA": null, "ZDROWIE / ROZWÓJ": null, "CZAS WOLNY": null };
+        planSection.style.display = "none";
+        scoresDiv.innerHTML = "";
+        document.getElementById('behavioralStep').value = "";
+        draw();
+    }
+
+    // Inicjalizacja tarczy
+    draw();
+</script>
+
+</body>
+</html>

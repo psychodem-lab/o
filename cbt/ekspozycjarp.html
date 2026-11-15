@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="cbt.png" />
+    <title>Trening ERP (OCD i Tiki)</title>
+    
+    <style>
+        /* Stylistyka bazowa (identyczna jak w poprzednich plikach) */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            line-height: 1.6; 
+            margin: 20px; 
+            background-color: #f7f3ec;
+            background-image: radial-gradient(#e9e1d4 0.75px, transparent 0.75px), radial-gradient(#e9e1d4 0.75px, #f7f3ec 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: #1b4332; 
+        }
+        
+        .container { 
+            max-width: 850px; 
+            margin: 0 auto; 
+            background-color: #fffdf9; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 8px 16px rgba(27, 67, 50, 0.08); 
+            border: 1px solid #d8c3a5;
+            margin-bottom: 40px; 
+        }
+
+        .logo-wrapper { text-align: center; margin-bottom: 20px; }
+        .logo-wrapper a { text-decoration: none; border: none; }
+        .logo-wrapper img { max-height: 80px; width: auto; display: inline-block; border: 0; }
+        
+        h1 { color: #1b4332; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Stylizacja kroków */
+        .step-container { margin-bottom: 30px; }
+        
+        .step-title {
+            background-color: #e5ede6;
+            color: #1b4332;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            border-left: 5px solid #2d6a4f;
+        }
+
+        .step-content {
+            padding: 20px;
+            border: 1px solid #d8c3a5;
+            border-top: none;
+            background-color: #fffdf9;
+            border-radius: 0 0 8px 8px;
+        }
+
+        textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #d8c3a5; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+            resize: vertical; 
+            font-family: inherit;
+            background-color: #ffffff;
+            color: #1b4332;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: white;
+        }
+
+        th { background-color: #e5ede6; color: #1b4332; padding: 10px; text-align: left; border: 1px solid #d8c3a5; }
+        td { border: 1px solid #d8c3a5; padding: 5px; vertical-align: top; }
+        
+        td textarea { border: none; border-radius: 0; min-height: 60px; display: block; width: 100%; box-shadow: none; resize: none; background-color: #ffffff; color: #1b4332; }
+        td textarea:focus { outline: 2px solid #d8c3a5; }
+        
+        .example-table td { padding: 10px; background-color: #fffdf9; color: #1b4332; }
+
+        ul { margin-top: 0; padding-left: 20px; }
+        li { margin-bottom: 5px; }
+
+        .citation {
+            font-size: 0.85em;
+            color: #40916c;
+            border-top: 1px solid #d8c3a5;
+            margin-top: 20px;
+            padding-top: 10px;
+        }
+
+        .action-buttons { text-align: center; margin-top: 30px; }
+        .print-btn { background-color: #52b788; color: white; padding: 12px 25px; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .clear-btn { background-color: #6c757d; color: white; padding: 12px 25px; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; margin-left: 10px; }
+        
+        .print-btn:hover { background-color: #40916c; }
+
+        @media print {
+            .action-buttons, .logo-wrapper { display: none; }
+            .container { box-shadow: none; width: 100%; margin: 0; padding: 0; }
+            body { background-color: white; }
+            textarea { border: 1px solid #eee; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-wrapper">
+        <a href="index.html" title="Powrót do strony głównej"><img src="logo.png" alt="Logo"></a>
+    </div>
+
+    <div class="container">
+        <h1>Ekspozycja i Powstrzymywanie Reakcji (ERP)</h1>
+
+        <form id="cbt-erp-form">
+            
+            <div class="step-container">
+                <div class="step-title">1. Jak działa błędne koło OCD/Tików?</div>
+                <div class="step-content">
+                    <p>W zaburzeniach obsesyjno-kompulsyjnych oraz tikach problemem nie jest tylko lęk, ale to, co robisz, by go zmniejszyć (rytuał/tik).</p>
+                    <ul>
+                        <li><strong>Obsesja (Wyzwalacz):</strong> Myśl, obraz lub fizyczny impuls (np. "Mam brudne ręce", "Muszę mrugnąć"). Powoduje wzrost napięcia.</li>
+                        <li><strong>Kompulsja (Rytuał):</strong> Czynność, która przynosi chwilową ulgę (np. mycie rąk, wykonanie tiku).</li>
+                    </ul>
+                    <p><strong>Mechanizm leczenia (ERP):</strong> Aby przerwać ten cykl, musisz wywołać napięcie (Ekspozycja) i <strong>NIE wykonać rytuału</strong> (Powstrzymywanie Reakcji). Tylko wtedy mózg nauczy się, że zagrożenie nie jest realne.</p>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">2. Przykłady Powstrzymywania Reakcji</div>
+                <div class="step-content">
+                    <table class="example-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 30%;">Wyzwalacz (Obsesja)</th>
+                                <th style="width: 30%;">Typowy Rytuał (Kompulsja)</th>
+                                <th style="width: 40%;">Zadanie ERP (Co zrobić?)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Dotknięcie klamki w miejscu publicznym.</td>
+                                <td>Natychmiastowe użycie żelu antybakteryjnego.</td>
+                                <td>Dotknięcie klamki i <strong>powstrzymanie się od mycia rąk</strong> przez 1 godzinę.</td>
+                            </tr>
+                            <tr>
+                                <td>Myśl: "Nie zamknąłem drzwi".</td>
+                                <td>Powrót do domu i sprawdzenie 5 razy.</td>
+                                <td>Wyjście z domu i <strong>zakaz wracania</strong>, mimo lęku, że są otwarte.</td>
+                            </tr>
+                            <tr>
+                                <td>Silne uczucie napięcia w powiece (Tik).</td>
+                                <td>Mruganie sekwencyjne.</td>
+                                <td>Patrzenie w jeden punkt i <strong>powstrzymanie mrugania</strong> tak długo, jak się da (Wygaszanie impulsu).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">3. Twoja Hierarchia ERP</div>
+                <div class="step-content">
+                    <p>Wypisz swoje wyzwalacze. Uporządkuj je od najłatwiejszych do najtrudniejszych do powstrzymania.</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Trudność (0-100)</th>
+                                <th style="width: 35%;">Wyzwalacz (Co wywołuje lęk/impuls?)</th>
+                                <th style="width: 50%;">Powstrzymywanie Reakcji (Czego NIE zrobisz?)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align: center; vertical-align: middle; font-weight: bold;">20 - 30<br><span style="font-size:0.8em; font-weight:normal;">(Rozgrzewka)</span></td>
+                                <td><textarea placeholder="Np. Dotknę podłogi..."></textarea></td>
+                                <td><textarea placeholder="Np. Nie umyję rąk przez 15 minut."></textarea></td>
+                            </tr>
+                            
+                            <tr>
+                                <td style="text-align: center; vertical-align: middle; font-weight: bold;">40 - 60<br><span style="font-size:0.8em; font-weight:normal;">(Wyzwanie)</span></td>
+                                <td><textarea placeholder=""></textarea></td>
+                                <td><textarea placeholder=""></textarea></td>
+                            </tr>
+                             <tr>
+                                <td style="text-align: center; vertical-align: middle; font-weight: bold;">40 - 60</td>
+                                <td><textarea></textarea></td>
+                                <td><textarea></textarea></td>
+                            </tr>
+
+                            <tr>
+                                <td style="text-align: center; vertical-align: middle; font-weight: bold;">70 - 90<br><span style="font-size:0.8em; font-weight:normal;">(Cel główny)</span></td>
+                                <td><textarea placeholder=""></textarea></td>
+                                <td><textarea placeholder=""></textarea></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">4. Kontrakt Treningowy</div>
+                <div class="step-content">
+                    <p>Wybierz zadanie ze środka tabeli (poziom 40-60). Pamiętaj: Lęk/Napięcie wzrośnie, ale bez rytuału w końcu opadnie.</p>
+                    
+                    <label><strong>Zadanie (Ekspozycja):</strong></label>
+                    <textarea placeholder="Zrobię..." style="margin-bottom: 15px; height: 50px;"></textarea>
+                    
+                    <label><strong>Zasada bezpieczeństwa (Powstrzymanie reakcji):</strong></label>
+                    <textarea placeholder="Podczas i po zadaniu ABSOLUTNIE NIE ZROBIĘ..." style="margin-bottom: 15px; height: 50px;"></textarea>
+
+                    <label><strong>Co będę sobie powtarzać, gdy lęk będzie wysoki?</strong></label>
+                    <textarea placeholder="Np. 'To tylko myśli, nie fakty', 'To uczucie minie, jeśli przeczekam'..." style="height: 60px;"></textarea>
+                </div>
+            </div>
+
+            <div class="citation">
+                <strong>Źródła naukowe i empiryczne:</strong><br>
+                1. Meyer, V. (1966). <em>Modification of expectations in cases with obsessional rituals.</em> Behaviour Research and Therapy. (Pierwsze badanie opisujące ERP jako skuteczną metodę).<br>
+                2. Międzynarodowa Fundacja OCD (IOCDF) - <em>Exposure and Response Prevention (ERP) Guidelines.</em> Dostępne na stronie: <a href="https://iocdf.org/" target="_blank">iocdf.org</a>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="print-btn" onclick="window.print()">🖨️ Drukuj Arkusz</button>
+                <button type="reset" class="clear-btn">🗑️ Wyczyść wszystko</button>
+            </div>
+
+        </form>
+    </div>
+</body>
+</html>

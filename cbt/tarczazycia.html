@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karta Pracy - Koło Życia i Wartości</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-dark: #0f766e;
+            --satisfaction-color: rgba(20, 184, 166, 0.7);
+            --satisfaction-border: #0d9488;
+            --importance-color: rgba(245, 158, 11, 0.3);
+            --importance-border: #d97706;
+            --bg-color: #f0fdfa;
+            --box-bg: #ffffff;
+            --text-main: #1e293b;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: var(--box-bg);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-instructions {
+            color: var(--primary-dark);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .legend-box {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            background-color: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .chart-container {
+                order: -1; 
+                max-width: 600px;
+                margin: 0 auto;
+            }
+        }
+
+        .category-group {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .category-group h3 {
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+            text-align: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .slider-wrapper {
+            margin-bottom: 1rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--primary-dark);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .notes-section {
+            margin-top: 3rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            resize: vertical;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        textarea:focus { border-color: var(--primary-dark); }
+
+        .footer-action {
+            margin-top: 3rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-dark);
+            color: #ffffff;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .submit-btn:hover { background-color: #115e59; }
+
+        /* Ukryty kontener używany wyłącznie do generowania zoptymalizowanego PDF */
+        #print-report {
+            display: none;
+            padding: 40px;
+            background: white;
+            color: black;
+            font-family: Arial, sans-serif;
+        }
+        
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .report-table th, .report-table td {
+            border: 1px solid #cbd5e0;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .report-table th {
+            background-color: #f0fdfa;
+            color: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app-content">
+    <div class="header-instructions">
+        <h2>Karta Pracy: Koło Życia (Wartości i Satysfakcja)</h2>
+        <p>Ustaw suwaki w skali 0-10, aby ocenić obecną <strong>Satysfakcję</strong> oraz <strong>Ważność</strong> danego obszaru.</p>
+    </div>
+
+    <div class="legend-box">
+        <div class="legend-item">
+            <div class="color-box" style="background-color: var(--satisfaction-color); border: 2px solid var(--satisfaction-border);"></div>
+            <span>Satysfakcja (Stan obecny)</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background-color: var(--importance-color); border: 2px dashed var(--importance-border);"></div>
+            <span>Ważność (Oczekiwania)</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="left-column" id="left-controls"></div>
+        <div class="chart-container">
+            <canvas id="polarChart"></canvas>
+        </div>
+        <div class="right-column" id="right-controls"></div>
+    </div>
+
+    <div class="notes-section">
+        <h3 style="color: var(--primary-dark); margin-bottom: 10px;">Wnioski i Notatki</h3>
+        <textarea id="user-notes" placeholder="Zapisz tutaj swoje refleksje..."></textarea>
+    </div>
+
+    <div class="footer-action">
+        <button class="submit-btn" onclick="generujRaportPDF()">Wygeneruj Raport PDF</button>
+    </div>
+</div>
+
+<div id="print-report"></div>
+
+<script>
+    const categories = [
+        "Zdrowie fizyczne", "Zdrowie psychiczne", "Relacje romantyczne", 
+        "Rodzina", "Przyjaźnie", "Rozwój zawodowy", 
+        "Finanse", "Relacja ze sobą", "Czas wolny", "Poczucie sensu"
+    ];
+
+    let chartInstance = null;
+
+    function initUI() {
+        const leftCol = document.getElementById('left-controls');
+        const rightCol = document.getElementById('right-controls');
+
+        categories.forEach((cat, index) => {
+            const html = `
+                <div class="category-group">
+                    <h3>${cat}</h3>
+                    <div class="slider-wrapper">
+                        <div class="slider-header">
+                            <span style="color: var(--satisfaction-border);">Satysfakcja</span>
+                            <span style="font-weight:bold;" id="sat-val-${index}">0</span>
+                        </div>
+                        <input type="range" id="sat-${index}" min="0" max="10" value="0" 
+                               oninput="updateValue('sat', ${index}); updateChart()">
+                    </div>
+                    <div class="slider-wrapper">
+                        <div class="slider-header">
+                            <span style="color: var(--importance-border);">Ważność</span>
+                            <span style="font-weight:bold;" id="waz-val-${index}">0</span>
+                        </div>
+                        <input type="range" id="waz-${index}" min="0" max="10" value="0" 
+                               oninput="updateValue('waz', ${index}); updateChart()">
+                    </div>
+                </div>
+            `;
+            if (index < 5) leftCol.innerHTML += html;
+            else rightCol.innerHTML += html;
+        });
+
+        initChart();
+    }
+
+    function updateValue(type, index) {
+        document.getElementById(`${type}-val-${index}`).innerText = document.getElementById(`${type}-${index}`).value;
+    }
+
+    // Zmodyfikowany Plugin: poziome napisy, bliżej środka
+    const customLabelsPlugin = {
+        id: 'customLabels',
+        afterDraw(chart) {
+            const { ctx, scales: { r } } = chart;
+            const center = { x: r.xCenter, y: r.yCenter };
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillStyle = '#1e293b';
+
+            chart.data.labels.forEach((label, i) => {
+                const sliceAngle = (2 * Math.PI) / chart.data.labels.length;
+                const startAngle = -Math.PI / 2 + (i * sliceAngle);
+                const midAngle = startAngle + (sliceAngle / 2);
+
+                // Promień 6.5 - przesuwa tekst głębiej do środka koła (max to 10)
+                const radius = r.getDistanceFromCenterForValue(6.5);
+
+                // Obliczanie stałej pozycji X, Y bez obracania kontekstu (zawsze poziomo)
+                const x = center.x + Math.cos(midAngle) * radius;
+                const y = center.y + Math.sin(midAngle) * radius;
+
+                const words = label.split(' ');
+                words.forEach((word, index) => {
+                    ctx.fillText(word, x, y + (index - (words.length-1)/2) * 14);
+                });
+            });
+            ctx.restore();
+        }
+    };
+
+    function initChart() {
+        const ctx = document.getElementById('polarChart').getContext('2d');
+        const initialData = Array(10).fill(0);
+
+        chartInstance = new Chart(ctx, {
+            type: 'polarArea',
+            data: {
+                labels: categories,
+                datasets: [
+                    {
+                        label: 'Ważność',
+                        data: initialData,
+                        backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                        borderColor: '#d97706',
+                        borderWidth: 2,
+                        borderDash: [5, 5]
+                    },
+                    {
+                        label: 'Satysfakcja',
+                        data: initialData,
+                        backgroundColor: 'rgba(20, 184, 166, 0.7)',
+                        borderColor: '#0d9488',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        min: 0, max: 10,
+                        ticks: { display: false, stepSize: 1 },
+                        angleLines: { display: true, color: 'rgba(0, 0, 0, 0.1)' },
+                        grid: { color: 'rgba(0, 0, 0, 0.1)', circular: true },
+                        pointLabels: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return `${context.dataset.label}: ${context.raw} / 10`; }
+                        }
+                    }
+                }
+            },
+            plugins: [customLabelsPlugin]
+        });
+    }
+
+    function updateChart() {
+        const importanceData = categories.map((_, i) => parseInt(document.getElementById(`waz-${i}`).value, 10));
+        const satisfactionData = categories.map((_, i) => parseInt(document.getElementById(`sat-${i}`).value, 10));
+        
+        chartInstance.data.datasets[0].data = importanceData;
+        chartInstance.data.datasets[1].data = satisfactionData;
+        chartInstance.update();
+    }
+
+    // Nowy mechanizm PDF - tworzy sformatowany raport na czystym kontenerze
+    function generujRaportPDF() {
+        const reportDiv = document.getElementById('print-report');
+        const notes = document.getElementById('user-notes').value.replace(/\n/g, '<br>');
+        
+        // Zrzut płótna Chart.js do obrazu (skaluje się idealnie)
+        const chartBase64 = document.getElementById('polarChart').toDataURL('image/png', 1.0);
+
+        // Budowa tabeli z wyliczoną "Luką" terapeutyczną
+        let tableRows = '';
+        categories.forEach((cat, i) => {
+            const waz = parseInt(document.getElementById(`waz-${i}`).value, 10);
+            const sat = parseInt(document.getElementById(`sat-${i}`).value, 10);
+            const luka = waz - sat > 0 ? waz - sat : 0; // Ujemna satysfakcja względem ważności nie tworzy "braku" z punktu widzenia potrzeb
+            
+            tableRows += `
+                <tr>
+                    <td style="text-align: left; font-weight: bold;">${cat}</td>
+                    <td>${waz}</td>
+                    <td>${sat}</td>
+                    <td style="color: ${luka > 3 ? '#e11d48' : 'inherit'}; font-weight: ${luka > 3 ? 'bold' : 'normal'};">${luka}</td>
+                </tr>
+            `;
+        });
+
+        // Wstrzyknięcie HTML bezpośrednio pod standard PDF (A4)
+        reportDiv.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="color: #0f766e; font-size: 24px;">Raport: Koło Życia i Wartości</h1>
+                <p style="color: #64748b;">Analiza satysfakcji i oczekiwań</p>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="${chartBase64}" style="max-width: 450px; height: auto; margin: 0 auto;" />
+            </div>
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Obszar życia</th>
+                        <th>Ważność (W)</th>
+                        <th>Satysfakcja (S)</th>
+                        <th>Luka (W - S)</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+
+            <div style="margin-top: 20px;">
+                <h3 style="color: #0f766e; border-bottom: 2px solid #0f766e; padding-bottom: 5px;">Wnioski i notatki:</h3>
+                <p style="margin-top: 10px; line-height: 1.6;">${notes ? notes : '<em>Brak notatek.</em>'}</p>
+            </div>
+        `;
+
+        // Pokaż na chwilę (wymagane dla html2pdf do poprawnego chwycenia stylów)
+        reportDiv.style.display = 'block';
+
+        const opt = {
+            margin:       15,
+            filename:     'Raport_Kolo_Zycia.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, logging: false },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(reportDiv).save().then(() => {
+            // Ukryj ponownie raport po wygenerowaniu
+            reportDiv.style.display = 'none';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initUI);
+</script>
+
+</body>
+</html>

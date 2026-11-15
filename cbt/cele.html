@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreator Celów CBT (Cognitive Behavioral Therapy)</title>
+    <!-- Tailwind CSS (Stylizacja) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome (Ikony) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf.js (Generowanie PDF na iOS, Android, Windows, Mac) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        
+        /* Stylizacja pod druk oraz PDF */
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; color: black; font-size: 12pt; }
+            .pdf-container { padding: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; }
+        }
+
+        .pdf-render .no-pdf { display: none !important; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Nagłówek i Nawigacja -->
+    <header class="bg-slate-900 text-white shadow-md no-print">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg">
+                    <i class="fa-solid fa-brain text-xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight">Kreator Celów w CBT</h1>
+                    <p class="text-xs text-slate-400">Psychoterapia Poznawczo-Behawioralna</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="resetForm()" class="px-3 py-2 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Wyczyść
+                </button>
+                <button onclick="generatePDF()" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> Pobierz PDF
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Główna treść narzędzia -->
+    <main class="max-w-5xl mx-auto px-4 py-8 flex-grow w-full">
+
+        <!-- Informacja metodyczna -->
+        <div class="mb-8 bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-r-lg no-print">
+            <div class="flex items-start space-x-3">
+                <i class="fa-solid fa-circle-info text-indigo-600 text-lg mt-0.5"></i>
+                <div class="text-sm text-indigo-950">
+                    <p class="font-semibold mb-1">Zasady wyznaczania celów w CBT:</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-700">
+                        <li><strong>Zoperacjonalizowany:</strong> Konkretne zachowanie (co, gdzie, kiedy, ile razy).</li>
+                        <li><strong>Dążeniowy (Pozytywny):</strong> Co chcesz <em>robić</em>, a nie czego unikać/nie czuć.</li>
+                        <li><strong>Wskaźniki SMART:</strong> Konkretny, Mierzalny, Osiągalny, Istotny, Czasowy.</li>
+                        <li><strong>Akceptacja dyskomfortu:</strong> Cel zakłada działanie pomimo obecności lęku.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kontener Arkusza (Eksportowany do PDF) -->
+        <div id="pdf-content" class="bg-white shadow-xl rounded-2xl border border-slate-200 overflow-hidden pdf-container">
+            
+            <!-- Nagłówek Dokumentu PDF -->
+            <div class="p-6 sm:p-8 bg-gradient-to-r from-slate-900 to-indigo-950 text-white border-b border-slate-800">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="inline-block px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-indigo-300 bg-indigo-900/50 rounded border border-indigo-700/50 mb-2">
+                            Arkusz Pracy Pacjenta
+                        </span>
+                        <h2 class="text-2xl font-bold">Karta Celu Terapeutycznego CBT</h2>
+                        <p class="text-sm text-slate-300 mt-1">Plan operacjonalizacji celu oraz hierarchia kroków ekspozycyjnych</p>
+                    </div>
+                    <div class="text-right text-xs text-slate-400">
+                        <p>Data utworzenia:</p>
+                        <p id="current-date" class="font-semibold text-slate-200"></p>
+                    </div>
+                </div>
+
+                <!-- Dane Identyfikacyjne -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-800 text-sm">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1 no-print">Inicjały / Kod Pacjenta:</label>
+                        <input type="text" id="patient-id" placeholder="np. A.K." class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-1.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()">
+                        <div class="hidden print-only text-slate-200 font-medium" id="print-patient-id"></div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1 no-print">Główny obszar trudności (Problem):</label>
+                        <input type="text" id="problem-area" placeholder="np. Lęk społeczny, Agorafobia" class="w-full bg-slate-800/80 border border-slate-700 rounded px-3 py-1.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()">
+                        <div class="hidden print-only text-slate-200 font-medium" id="print-problem-area"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 sm:p-8 space-y-8">
+
+                <!-- SEKCJA 1: Transformacja Celu -->
+                <section>
+                    <h3 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center font-bold">1</span>
+                        Sformułowanie i Operacjonalizacja Celu
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Cel Nieoperacyjny -->
+                        <div class="bg-rose-50/50 border border-rose-200 rounded-xl p-4">
+                            <label class="block text-xs font-bold text-rose-800 uppercase tracking-wide mb-1">
+                                <i class="fa-solid fa-xmark text-rose-500 mr-1"></i> Wyjściowy Cel Ogólny / Negatywny
+                            </label>
+                            <p class="text-xs text-rose-600 mb-2">Jak pacjent formułuje problem? (np. "Chcę przestać się stresować")</p>
+                            <textarea id="initial-goal" rows="3" placeholder="Wpisz wstępne sformułowanie celu..." class="w-full bg-white border border-rose-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-rose-400 focus:outline-none no-print" oninput="updatePrintViews()"></textarea>
+                            <div class="hidden print-only text-slate-800 text-sm whitespace-pre-wrap" id="print-initial-goal"></div>
+                        </div>
+
+                        <!-- Cel Zoperacjonalizowany -->
+                        <div class="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4">
+                            <label class="block text-xs font-bold text-emerald-800 uppercase tracking-wide mb-1">
+                                <i class="fa-solid fa-check text-emerald-500 mr-1"></i> Cel Zoperacjonalizowany (SMART)
+                            </label>
+                            <p class="text-xs text-emerald-600 mb-2">Konkretne zachowanie dążeniowe (co, gdzie, kiedy, częstotliwość)</p>
+                            <textarea id="operational-goal" rows="3" placeholder="Wpisz cel w postaci konkretnego zachowania..." class="w-full bg-white border border-emerald-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none font-medium text-slate-900 no-print" oninput="updatePrintViews()"></textarea>
+                            <div class="hidden print-only text-slate-900 text-sm font-semibold whitespace-pre-wrap" id="print-operational-goal"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEKCJA 2: Weryfikacja SMART -->
+                <section>
+                    <h3 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 mb-4 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center font-bold">2</span>
+                        Weryfikacja Wskaźników SMART
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                            <span class="text-xs font-bold text-indigo-600 block mb-1"><i class="fa-solid fa-bullseye mr-1"></i> Mierzalny wskaźnik</span>
+                            <input type="text" id="smart-measurable" placeholder="np. 1 wypowiedź, min. 2 minuty" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()">
+                            <div class="hidden print-only text-xs text-slate-800 font-medium" id="print-smart-measurable"></div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                            <span class="text-xs font-bold text-indigo-600 block mb-1"><i class="fa-regular fa-clock mr-1"></i> Horyzont czasowy</span>
+                            <input type="text" id="smart-time" placeholder="np. W ciągu 8 tygodni" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()">
+                            <div class="hidden print-only text-xs text-slate-800 font-medium" id="print-smart-time"></div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                            <span class="text-xs font-bold text-indigo-600 block mb-1"><i class="fa-solid fa-shield-halved mr-1"></i> Akceptowany dyskomfort</span>
+                            <input type="text" id="smart-discomfort" placeholder="np. Mimo niepokoju 60-70 SUD" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()">
+                            <div class="hidden print-only text-xs text-slate-800 font-medium" id="print-smart-discomfort"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEKCJA 3: Hierarchia Kroków (Drabina Ekspozycji) -->
+                <section>
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-4">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center font-bold">3</span>
+                            Hierarchia Kroków Pośrednich (Drabina Ekspozycji)
+                        </h3>
+                        <button onclick="addStepRow()" class="no-print text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Dodaj krok
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 border-b border-slate-300 text-slate-700 uppercase tracking-wider font-semibold">
+                                    <th class="p-2.5 w-12 text-center">Krok</th>
+                                    <th class="p-2.5">Zadanie / Eksperyment Behawioralny</th>
+                                    <th class="p-2.5 w-28 text-center">SUD (0-100)</th>
+                                    <th class="p-2.5 w-32 text-center">Termin</th>
+                                    <th class="p-2.5 w-10 text-center no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="steps-table-body" class="divide-y divide-slate-200">
+                                <!-- Dynamiczne wiersze -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- SEKCJA 4: Hipoteza i Eksperyment Poznawczy -->
+                <section class="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                    <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-vial text-indigo-600"></i> Testowanie Przekonań (Eksperyment Behawioralny)
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Negatywne Przewidywanie (Przed zadaniem):</label>
+                            <textarea id="cognition-prediction" rows="2" placeholder="Co najgorszego zdaniem pacjenta się stanie?" class="w-full bg-white border border-slate-300 rounded p-2 focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()"></textarea>
+                            <div class="hidden print-only text-slate-800 whitespace-pre-wrap" id="print-cognition-prediction"></div>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Empiryczny Wynik i Wnioski (Po zadaniu):</label>
+                            <textarea id="cognition-outcome" rows="2" placeholder="Co dokładnie się stało i co to oznacza?" class="w-full bg-white border border-slate-300 rounded p-2 focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()"></textarea>
+                            <div class="hidden print-only text-slate-800 whitespace-pre-wrap" id="print-cognition-outcome"></div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Stopka PDF -->
+            <div class="bg-slate-100 border-t border-slate-200 px-8 py-4 text-center text-slate-500 text-xs">
+                Opracowano w oparciu o standardy Psychoterapii Poznawczo-Behawioralnej (CBT)
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 no-print">
+        <p>Aplikacja działa w pełni lokalnie w Twojej przeglądarce. Dane są chronione i nie są wysyłane na żaden serwer.</p>
+    </footer>
+
+    <!-- Skrypty Logiki i Obsługi PDF -->
+    <script>
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('pl-PL', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        const defaultSteps = [
+            { task: "Zadanie pytania ekspedientce w sklepie", sud: "40", time: "Tydzień 1" },
+            { task: "Włączenie kamery i przywitanie się na zebraniu online", sud: "55", time: "Tydzień 2" },
+            { task: "Zadanie pytania współpracownikowi na osobności", sud: "70", time: "Tydzień 3" },
+            { task: "Zabranie głosu na forum zespołu (min. 1 zdanie)", sud: "85", time: "Tydzień 4" }
+        ];
+
+        function initSteps() {
+            const tbody = document.getElementById('steps-table-body');
+            tbody.innerHTML = '';
+            defaultSteps.forEach(step => addStepRow(step.task, step.sud, step.time));
+        }
+
+        function addStepRow(task = '', sud = '', time = '') {
+            const tbody = document.getElementById('steps-table-body');
+            const rowCount = tbody.children.length + 1;
+
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50/80 transition";
+            tr.innerHTML = `
+                <td class="p-2 text-center font-bold text-slate-500">${rowCount}</td>
+                <td class="p-2">
+                    <input type="text" value="${task}" placeholder="Opis zadania..." class="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs focus:bg-white focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()">
+                    <div class="hidden print-only font-medium text-slate-800 print-task-text">${task}</div>
+                </td>
+                <td class="p-2 text-center">
+                    <input type="number" min="0" max="100" value="${sud}" placeholder="0-100" class="w-16 text-center bg-slate-50 border border-slate-200 rounded px-1 py-1 text-xs focus:bg-white focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()">
+                    <div class="hidden print-only font-bold text-slate-700 print-sud-text">${sud}</div>
+                </td>
+                <td class="p-2 text-center">
+                    <input type="text" value="${time}" placeholder="np. Tydzień 2" class="w-full text-center bg-slate-50 border border-slate-200 rounded px-2 py-1 text-xs focus:bg-white focus:outline-none focus:border-indigo-500 no-print" oninput="updatePrintViews()">
+                    <div class="hidden print-only text-slate-600 print-time-text">${time}</div>
+                </td>
+                <td class="p-2 text-center no-print">
+                    <button onclick="removeStepRow(this)" class="text-slate-400 hover:text-rose-500 transition px-1">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            updatePrintViews();
+        }
+
+        function removeStepRow(btn) {
+            btn.closest('tr').remove();
+            reindexSteps();
+            updatePrintViews();
+        }
+
+        function reindexSteps() {
+            document.querySelectorAll('#steps-table-body tr').forEach((row, idx) => {
+                row.children[0].innerText = idx + 1;
+            });
+        }
+
+        function updatePrintViews() {
+            const sync = (inputId, printId) => {
+                const input = document.getElementById(inputId);
+                const print = document.getElementById(printId);
+                if (input && print) print.innerText = input.value || '—';
+            };
+
+            sync('patient-id', 'print-patient-id');
+            sync('problem-area', 'print-problem-area');
+            sync('initial-goal', 'print-initial-goal');
+            sync('operational-goal', 'print-operational-goal');
+            sync('smart-measurable', 'print-smart-measurable');
+            sync('smart-time', 'print-smart-time');
+            sync('smart-discomfort', 'print-smart-discomfort');
+            sync('cognition-prediction', 'print-cognition-prediction');
+            sync('cognition-outcome', 'print-cognition-outcome');
+
+            document.querySelectorAll('#steps-table-body tr').forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const printTask = row.querySelector('.print-task-text');
+                const printSud = row.querySelector('.print-sud-text');
+                const printTime = row.querySelector('.print-time-text');
+
+                if (inputs[0] && printTask) printTask.innerText = inputs[0].value || '—';
+                if (inputs[1] && printSud) printSud.innerText = inputs[1].value ? inputs[1].value + ' / 100' : '—';
+                if (inputs[2] && printTime) printTime.innerText = inputs[2].value || '—';
+            });
+        }
+
+        function resetForm() {
+            if (confirm("Czy na pewno chcesz wyczyścić formularz?")) {
+                document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+                initSteps();
+                updatePrintViews();
+            }
+        }
+
+        function generatePDF() {
+            updatePrintViews();
+            const element = document.getElementById('pdf-content');
+            
+            document.body.classList.add('pdf-render');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Karta_Celu_CBT_' + (document.getElementById('patient-id').value || 'Pacjent') + '.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('pdf-render');
+            }).catch(err => {
+                console.error("Błąd PDF:", err);
+                document.body.classList.remove('pdf-render');
+                window.print();
+            });
+        }
+
+        window.onload = function() {
+            initSteps();
+            updatePrintViews();
+        };
+    </script>
+</body>
+</html>

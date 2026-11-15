@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="cbt.png" />
+    <title>Restrukturyzacja</title>
+    
+    <style>
+        /* Styl bazowy */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            line-height: 1.6; 
+            margin: 20px; 
+            background-color: #f7f3ec;
+            background-image: radial-gradient(#e9e1d4 0.75px, transparent 0.75px), radial-gradient(#e9e1d4 0.75px, #f7f3ec 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: #1b4332; 
+        }
+        
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background-color: #fffdf9; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 8px 16px rgba(27, 67, 50, 0.08); 
+            border: 1px solid #d8c3a5;
+            margin-bottom: 40px; 
+        }
+
+          .logo-wrapper {
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+.logo-wrapper a {
+            text-decoration: none;
+            border: none;
+        }
+
+        .logo-wrapper img {
+            max-height: 100px; 
+            width: auto;
+            display: inline-block;
+            margin-top: 0; 
+            border: 0;
+        }
+
+        
+        h1 { 
+            color: #1b4332; 
+            text-align: center; 
+            margin-bottom: 10px; 
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #2d6a4f; 
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        /* --- NAWIGACJA --- */
+        .nav-bar {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            border-bottom: 2px solid #d8c3a5;
+            background-color: #e5ede6;
+            border-radius: 10px;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: #1b4332;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background-color: #fffdf9;
+            transition: background-color 0.3s;
+        }
+        .nav-link:hover {
+            background-color: #d8c3a5;
+            color: #1b4332;
+        }
+
+        /* --- STYLIZE DLA KWestionariusza Myśli Automatycznych (KMA) --- */
+        .kma-section {
+            padding-top: 20px;
+        }
+
+        .kma-header {
+            color: #1b4332;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #d8c3a5;
+            padding-bottom: 10px;
+        }
+
+        .form-section { 
+            margin-bottom: 25px; 
+            padding: 15px; 
+            border-left: 5px solid #2d6a4f; 
+            background-color: #fffdf9; 
+            border: 1px solid #d8c3a5;
+            border-left-width: 5px;
+            border-radius: 5px; 
+        }
+
+        .form-section label { 
+            display: block; 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            color: #1b4332; 
+        }
+        
+        .form-section textarea { 
+            width: 100%; 
+            padding: 10px; 
+            border: 1px solid #d8c3a5; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+            resize: vertical; 
+            min-height: 80px; 
+            background-color: #ffffff;
+            color: #1b4332;
+        }
+
+        .kma-steps { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+        }
+
+        /* Wyróżnienie Myśli Automatycznej */
+        .thought-section {
+            border-left-color: #e07a5f; 
+        }
+        .thought-section label {
+            color: #e07a5f !important;
+        }
+        
+        /* Wyróżnienie Dowodów ZA i PRZECIW */
+        .evidence-for { border-left-color: #52b788; }
+        .evidence-for label { color: #2d6a4f !important; }
+
+        .evidence-against { border-left-color: #40916c; }
+        .evidence-against label { color: #1b4332 !important; }
+
+        /* Wyróżnienie Myśli Alternatywnej */
+        .alternative-thought { border-left-color: #3d5a80; }
+        .alternative-thought label { color: #3d5a80 !important; }
+
+
+        /* Przyciski Akcji (Kwestionariusz) */
+        .action-buttons { 
+            text-align: center; 
+            margin-top: 30px; 
+        }
+        
+        .action-buttons button { 
+            padding: 12px 25px; 
+            margin: 0 10px; 
+            border: none; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: background-color 0.3s;
+        }
+        
+        .print-btn { 
+            background-color: #52b788; 
+            color: white; 
+        }
+        
+        .print-btn:hover {
+            background-color: #40916c;
+        }
+
+        .clear-btn { 
+            background-color: #6c757d; 
+            color: white; 
+        }
+
+        .clear-btn:hover {
+            background-color: #5a6268;
+        }
+
+        /* Media Query dla responsywności */
+        @media (max-width: 650px) {
+            .kma-steps { 
+                grid-template-columns: 1fr; 
+            }
+        }
+        
+        /* Media Print (zintegrowane) */
+        @media print {
+            .nav-bar { display: none; }
+            body { background-color: white !important; color: black !important; }
+            .container { box-shadow: none; margin: 0; padding: 0; }
+            h1, .subtitle, .kma-header { color: black !important; }
+            
+            /* Ukryj przyciski */
+            .action-buttons { display: none; }
+            .form-section {
+                border-left: 2px solid #ccc;
+                background-color: white;
+                padding: 5px 0;
+            }
+            textarea {
+                border: 1px dashed #aaa;
+                background-color: #fff;
+            }
+        }
+    </style>
+</head>
+<body>
+     <div class="logo-wrapper">
+            <a href="index.html" title="Powrót do strony głównej">
+                <img src="logo.png" alt="Psychodem">
+            </a>
+    <div class="container">
+        <h1>Restrukturyzacja myślenia</h1>
+        
+
+        <!-- KWestionariusz MYŚLI AUTOMATYCZNYCH (Formularz) -->
+        <div class="kma-section">
+            <form id="kmaForm" onsubmit="return false;">
+
+                <!-- KROK 1: SYTUACJA I EMOCJE -->
+                <div class="form-section">
+                    <label for="situation">1. Sytuacja (Co się wydarzyło, gdzie, kiedy i z kim?)</label>
+                    <textarea id="situation" placeholder="Np. Dostałem negatywną opinię od szefa na spotkaniu."></textarea>
+                    <div class="description">Opisz fakty (kto, co, gdzie, kiedy), bez oceniania czy interpretowania.</div>
+                </div>
+
+                <div class="form-section">
+                    <label for="emotions">2. Emocje (Co czułeś? Jaki był poziom intensywności 0-100%?)</label>
+                    <textarea id="emotions" placeholder="Np. Lęk (85%), Smutek (60%), Wstyd (40%)"></textarea>
+                    <div class="description">Nazwij emocje (używaj pojedynczych słów) i oceń ich siłę przed kwestionowaniem.</div>
+                </div>
+
+                <!-- KROK 2: MYŚL AUTOMATYCZNA -->
+                <div class="form-section thought-section">
+                    <label for="automatic-thought">3. Myśl Automatyczna (Jaka myśl/przekonanie pojawiło się w Twojej głowie w tym momencie?)</label>
+                    <textarea id="automatic-thought" placeholder="Np. 'Jestem beznadziejny/a', 'Nigdy mi się nie uda', 'Wszyscy mnie oceniają'."></textarea>
+                    <div class="description">Zapisz myśl w formie dosłownej, tak jak się pojawiła, nawet jeśli wydaje się irracjonalna.</div>
+                </div>
+
+                <!-- KROK 3: KWestionowanie Myśli -->
+                <div class="kma-steps">
+                    <div class="form-section evidence-for">
+                        <label for="evidence-for">4. Dowody ZA Myślą (Co przemawia za tym, że ta myśl jest PRAWIDŁOWA?)</label>
+                        <textarea id="evidence-for" placeholder="Np. Szef faktycznie wytknął mi błąd."></textarea>
+                        <div class="description">Bądź obiektywny – zbierz fakty, które potwierdzają tylko tę myśl.</div>
+                    </div>
+
+                    <div class="form-section evidence-against">
+                        <label for="evidence-against">5. Dowody PRZECIW Myśli (Co przemawia za tym, że ta myśl jest NIEPRAWDZIWA lub PRZEKOLORYZOWANA?)</label>
+                        <textarea id="evidence-against" placeholder="Np. Pochwalił mnie za inne projekty w zeszłym miesiącu. To tylko jedno zadanie, a nie dowód na moją beznadziejność."></textarea>
+                        <div class="description">Poszukaj alternatywnych wyjaśnień i faktów zaprzeczających.</div>
+                    </div>
+                </div>
+
+                <!-- KROK 4: NOWA PERSPEKTYWA -->
+                <div class="form-section alternative-thought">
+                    <label for="alternative-thought">6. Myśl Alternatywna/Realistyczna (Jaka jest bardziej zrównoważona i pomocna perspektywa?)</label>
+                    <textarea id="alternative-thought" placeholder="Np. 'Popełniłem/am błąd w tym zadaniu. Błędy się zdarzają i uczę się na nich. Mogę to naprawić.'"></textarea>
+                    <div class="description">Przeformułuj myśl na bardziej realistyczną, uwzględniającą wszystkie dowody.</div>
+                </div>
+                
+                <div class="form-section">
+                    <label for="re-rate-emotions">7. Ponowna Ocena Emocji (Jaki jest poziom intensywności emocji TERAZ? 0-100%?)</label>
+                    <textarea id="re-rate-emotions" placeholder="Np. Lęk (20%), Smutek (10%)"></textarea>
+                    <div class="description">Porównaj obecną intensywność emocji z intensywnością początkową.</div>
+                </div>
+
+                <!-- PRZYCISKI AKCJI -->
+                <div class="action-buttons">
+                    <button class="print-btn" onclick="window.print()">🖨️ Drukuj / Zapisz jako PDF</button>
+                    <button class="clear-btn" type="reset">🗑️ Wyczyść Kwestionariusz</button>
+                </div>
+            </form>
+
+            <p class="description" style="text-align: center; margin-top: 20px;">
+                **Uwaga:** Dane wpisane w ten formularz są bezpieczne (nie są wysyłane). Pamiętaj, aby wydrukować zapis!
+            </p>
+        </div>
+
+    </div>
+</body>
+</html>

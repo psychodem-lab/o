@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GENOGRAM - TERAPIA SYSTEMOWA</title>
+    <link rel="icon" type="image/png" href="https://img.icons8.com/?size=48&id=111447&format=png&color=228BE6">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #network-container { width: 100%; height: 600px; background: #fdfdfd; border-radius: 12px; border: 2px solid #cbd5e1; }
+        .sidebar-scroll { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 10px; }
+        
+        @media print {
+            @page { size: landscape; margin: 0.5cm; }
+            header, aside, .no-print, button, label, input, select, textarea, .range-container { display: none !important; }
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            main { width: 100% !important; grid-column: span 12 / span 12 !important; margin: 0 !important; padding: 0 !important; }
+            
+            #network-container { 
+                border: none !important; height: 95vh !important; width: 100% !important;
+                position: absolute; top: 0; left: 0;
+            }
+            .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .print\:shadow-none { box-shadow: none !important; border: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-900">
+
+    <header class="bg-slate-900 text-white p-4 shadow-xl border-b-4 border-indigo-600 no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-black italic uppercase tracking-tighter">GENOGRAM <span class="text-indigo-400">MODEL SYSTEMOWY</span></h1>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded font-bold uppercase transition">Drukuj Raport</button>
+                <button onclick="exportSession()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold uppercase transition">Eksportuj</button>
+                <label class="text-[10px] bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded font-bold cursor-pointer uppercase transition">
+                    Importuj <input type="file" id="importFile" class="hidden" accept=".json" onchange="importSession(event)">
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 px-4">
+        
+        <aside class="xl:col-span-4 space-y-4 sidebar-scroll no-print">
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">1. Dodaj członka rodziny</h2>
+                
+                <div class="space-y-4 italic">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Imię / Wiek / Rola:</label>
+                        <textarea id="node-label" rows="2" placeholder="np. Jan (52)&#10;Ojciec" class="w-full p-2 border rounded bg-slate-50 outline-none focus:ring-2 ring-indigo-200 resize-y"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400">Płeć (Kształt):</label>
+                            <select id="node-gender" class="w-full p-2 text-xs border rounded bg-white">
+                                <option value="male">Mężczyzna (Kwadrat)</option>
+                                <option value="female">Kobieta (Koło)</option>
+                                <option value="other">Inna / Nieznana (Romb)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400">Status w systemie:</label>
+                            <select id="node-status" class="w-full p-2 text-xs border rounded bg-white font-bold text-slate-700">
+                                <option value="standard">Standardowy członek</option>
+                                <option value="ip">Pacjent Identyfikowany (IP)</option>
+                                <option value="deceased">Osoba zmarła</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="addFamilyMember()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg hover:bg-black transition-all shadow-lg uppercase text-xs">Dodaj Osobę</button>
+                    
+                    <button onclick="toggleQuestionsModal()" class="w-full mt-2 bg-indigo-50 text-indigo-700 border border-indigo-200 font-black py-2 rounded-lg hover:bg-indigo-100 transition-all uppercase text-[10px]">Pytania Systemowe / Hipotezy</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">2. Określ relację</h2>
+                <div class="space-y-3">
+                    <select id="edge-from" class="w-full p-2 text-xs border rounded"></select>
+                    <select id="edge-to" class="w-full p-2 text-xs border rounded"></select>
+                    <select id="edge-type" class="w-full p-2 text-xs border rounded font-bold bg-indigo-50">
+                        <optgroup label="Strukturalne">
+                            <option value="marriage">Małżeństwo / Partnerstwo</option>
+                            <option value="divorce">Rozwód / Separacja</option>
+                            <option value="parent-child">Rodzic -> Dziecko (kierunek)</option>
+                        </optgroup>
+                        <optgroup label="Emocjonalne">
+                            <option value="close">Bliska / Silna więź</option>
+                            <option value="enmeshed">Uwikłanie / Zbyt bliska</option>
+                            <option value="conflict">Konfliktowa / Napięta</option>
+                            <option value="cutoff">Zerwana relacja / Odcięcie</option>
+                            <option value="distant">Dystans / Chłodna</option>
+                        </optgroup>
+                    </select>
+
+                    <button onclick="addRelationship()" class="w-full bg-indigo-600 text-white font-black py-2 rounded shadow hover:bg-indigo-700 transition uppercase text-[10px]">Utwórz relację</button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="xl:col-span-8 space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-lg border border-slate-200 print:shadow-none print:border-none">
+                <div id="network-container"></div>
+                
+                <div class="mt-4 p-4 bg-slate-50 rounded-lg border flex flex-wrap gap-4 items-center justify-center print:bg-white text-[10px] uppercase font-bold text-slate-600">
+                    <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 border-2 border-blue-500 bg-blue-100 block"></span> Mężczyzna
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 border-2 border-red-500 bg-red-100 rounded-full block"></span> Kobieta
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 border-2 border-slate-800 bg-yellow-200 block border-double border-[3px]"></span> Pacjent (IP)
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="w-4 h-4 border-2 border-slate-400 bg-slate-200 block border-dashed"></span> Zmarły
+                    </div>
+                    
+                    <button onclick="deleteSelected()" class="text-slate-500 ml-auto hover:text-red-600 border border-slate-300 rounded px-2 py-1 bg-white transition">Usuń zaznaczone</button>
+                    <button onclick="resetAll()" class="text-red-500 hover:text-red-700 transition">Resetuj wszystko</button>
+                    <button onclick="undoLast()" class="text-orange-500 hover:text-orange-700 transition">Cofnij</button>
+                </div>
+                <p class="text-center text-slate-400 text-xs mt-2 no-print italic">Wskazówka: Ułóż węzły ręcznie (np. starsze pokolenia wyżej). Kliknij dwukrotnie węzeł, aby zmienić tekst.</p>
+            </div>
+        </main>
+    </div>
+
+    <div id="questionsModal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden max-h-[85vh]">
+            <div class="bg-slate-100 p-4 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 uppercase text-sm tracking-wider">Kompas Terapii Systemowej</h3>
+                <button onclick="toggleQuestionsModal()" class="text-slate-500 hover:text-red-500 font-bold text-lg leading-none">&times;</button>
+            </div>
+            
+            <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+                <div class="w-full md:w-1/3 bg-slate-50 border-r border-slate-200 p-3 overflow-y-auto space-y-1">
+                    <button onclick="showQuestion('cyrkularne')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-indigo-600 hover:bg-indigo-100 transition">Pytania cyrkularne</button>
+                    <button onclick="showQuestion('cykl')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-emerald-600 hover:bg-emerald-100 transition">Cykl życia rodziny</button>
+                    <button onclick="showQuestion('hipotezy')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-blue-600 hover:bg-blue-100 transition">Hipotezy systemowe</button>
+                    <button onclick="showQuestion('mity')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-amber-600 hover:bg-amber-100 transition">Mity i sekrety</button>
+                    <button onclick="showQuestion('lojalnosci')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-purple-600 hover:bg-purple-100 transition">Lojalności / Delegacje</button>
+                    <button onclick="showQuestion('granice')" class="w-full text-left px-3 py-2 rounded text-xs font-bold uppercase text-rose-600 hover:bg-rose-100 transition">Granice w systemie</button>
+                </div>
+                
+                <div class="w-full md:w-2/3 p-6 overflow-y-auto bg-white">
+                    <div id="questionContent" class="text-sm text-slate-700 space-y-3">
+                        <p class="italic text-slate-400 text-center mt-10">Wybierz obszar po lewej stronie, aby wyświetlić kluczowe zagadnienia do analizy genogramu.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3 border-t text-right">
+                <button onclick="toggleQuestionsModal()" class="bg-slate-800 text-white px-4 py-2 rounded font-bold uppercase text-[10px] hover:bg-slate-700">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nodes = new vis.DataSet([]);
+        let edges = new vis.DataSet([]);
+        let historyStack = [];
+        const container = document.getElementById('network-container');
+        const data = { nodes: nodes, edges: edges };
+        
+        const options = {
+            nodes: {
+                font: { size: 14, face: 'Verdana', color: '#1e293b', multi: 'html' },
+                borderWidth: 2,
+                shadow: true,
+                margin: 10
+            },
+            edges: {
+                font: { size: 10, background: '#ffffff', align: 'middle' },
+                smooth: { type: 'continuous', roundness: 0.2 }
+            },
+            physics: {
+                // Wyłączona fizyka, by ręcznie układać pokolenia (wymóg genogramu)
+                enabled: false 
+            },
+            interaction: {
+                dragNodes: true, dragView: true, zoomView: true, multiselect: true
+            }
+        };
+        const network = new vis.Network(container, data, options);
+
+        // Edycja tekstu po dwukrotnym kliknięciu
+        network.on("doubleClick", function (params) {
+            if (params.nodes.length > 0) {
+                const nodeId = params.nodes[0];
+                const nodeToEdit = nodes.get(nodeId);
+                const newLabel = prompt("Edytuj dane (Imię / Wiek / Rola):", nodeToEdit.label);
+                
+                if (newLabel !== null && newLabel.trim() !== "") {
+                    historyStack.push({ type: 'edit', id: nodeId, oldLabel: nodeToEdit.label });
+                    nodes.update({ id: nodeId, label: newLabel });
+                    updateSelects();
+                }
+            }
+        });
+
+        function addFamilyMember() {
+            const label = document.getElementById('node-label').value;
+            const gender = document.getElementById('node-gender').value;
+            const status = document.getElementById('node-status').value;
+
+            if (!label) return;
+            
+            let nodeShape = 'box';
+            let bgColor = '#ffffff';
+            let borderColor = '#000000';
+            let borderWidth = 2;
+            let borderDashes = false;
+            let fontColor = '#1e293b';
+
+            // Płeć określa kształt i domyślne kolory
+            if (gender === 'male') {
+                nodeShape = 'box';
+                bgColor = '#dbeafe'; // jasnoniebieski
+                borderColor = '#3b82f6';
+            } else if (gender === 'female') {
+                nodeShape = 'circle';
+                bgColor = '#fee2e2'; // jasnoczerwony
+                borderColor = '#ef4444';
+            } else if (gender === 'other') {
+                nodeShape = 'diamond';
+                bgColor = '#f3f4f6';
+                borderColor = '#6b7280';
+            }
+
+            // Status modyfikuje wygląd
+            if (status === 'ip') {
+                borderWidth = 5;
+                borderColor = '#1e293b';
+                bgColor = '#fef08a'; // żółty dla IP
+            } else if (status === 'deceased') {
+                bgColor = '#e2e8f0';
+                borderColor = '#64748b';
+                borderDashes = [5, 5]; // przerywana ramka dla zmarłych
+                fontColor = '#64748b';
+            }
+
+            const newNodeId = Date.now();
+            nodes.add({
+                id: newNodeId,
+                label: label,
+                shape: nodeShape,
+                color: {
+                    background: bgColor,
+                    border: borderColor,
+                    highlight: { background: bgColor, border: borderColor }
+                },
+                borderWidth: borderWidth,
+                shapeProperties: { borderDashes: borderDashes },
+                font: { color: fontColor }
+            });
+
+            historyStack.push({ type: 'node', id: newNodeId });
+            document.getElementById('node-label').value = "";
+            updateSelects();
+        }
+
+        function addRelationship() {
+            const from = document.getElementById('edge-from').value;
+            const to = document.getElementById('edge-to').value;
+            const type = document.getElementById('edge-type').value;
+            
+            if (!from || !to || from === to) return;
+
+            let edgeColor = '#000000';
+            let edgeWidth = 2;
+            let edgeDashes = false;
+            let edgeLabel = '';
+            let showArrow = false;
+
+            switch(type) {
+                // Strukturalne
+                case 'marriage':
+                    edgeColor = '#1e293b';
+                    edgeWidth = 2;
+                    break;
+                case 'divorce':
+                    edgeColor = '#1e293b';
+                    edgeWidth = 2;
+                    edgeDashes = [5, 5];
+                    edgeLabel = 'Rozwód';
+                    break;
+                case 'parent-child':
+                    edgeColor = '#1e293b';
+                    edgeWidth = 2;
+                    showArrow = true;
+                    break;
+                // Emocjonalne
+                case 'close':
+                    edgeColor = '#10b981'; // zielony
+                    edgeWidth = 4;
+                    break;
+                case 'enmeshed':
+                    edgeColor = '#8b5cf6'; // fiolet
+                    edgeWidth = 6;
+                    break;
+                case 'conflict':
+                    edgeColor = '#ef4444'; // czerwony
+                    edgeWidth = 3;
+                    edgeDashes = [10, 5];
+                    edgeLabel = 'Konflikt';
+                    break;
+                case 'cutoff':
+                    edgeColor = '#94a3b8'; // szary
+                    edgeWidth = 2;
+                    edgeDashes = [2, 6]; // kropkowana
+                    edgeLabel = 'Zerwana';
+                    break;
+                case 'distant':
+                    edgeColor = '#cbd5e1'; // jasnoszary
+                    edgeWidth = 2;
+                    edgeLabel = 'Dystans';
+                    break;
+            }
+
+            const newEdgeIds = edges.add({
+                from: from,
+                to: to,
+                label: edgeLabel,
+                width: edgeWidth,
+                color: { color: edgeColor, highlight: edgeColor, hover: edgeColor },
+                dashes: edgeDashes,
+                arrows: {
+                    to: { enabled: showArrow, type: 'arrow', scaleFactor: 1 }
+                }
+            });
+            const edgeId = Array.isArray(newEdgeIds) ? newEdgeIds[0] : newEdgeIds;
+            historyStack.push({ type: 'edge', id: edgeId });
+        }
+
+        function updateSelects() {
+            const fromSelect = document.getElementById('edge-from');
+            const toSelect = document.getElementById('edge-to');
+            fromSelect.innerHTML = ""; toSelect.innerHTML = "";
+            nodes.forEach(node => {
+                let opt = `<option value="${node.id}">${node.label.replace(/\n/g, ' ').substring(0, 30)}${node.label.length > 30 ? '...' : ''}</option>`;
+                fromSelect.innerHTML += opt; toSelect.innerHTML += opt;
+            });
+        }
+
+        function deleteSelected() {
+            const selectedNodes = network.getSelectedNodes();
+            const selectedEdges = network.getSelectedEdges();
+            if (selectedNodes.length > 0) { nodes.remove(selectedNodes); updateSelects(); }
+            if (selectedEdges.length > 0) { edges.remove(selectedEdges); }
+        }
+
+        function undoLast() {
+            if (historyStack.length === 0) return;
+            const lastAction = historyStack.pop();
+            
+            if (lastAction.type === 'edge') {
+                try { edges.remove(lastAction.id); } catch (e) { }
+            } else if (lastAction.type === 'node') {
+                try { nodes.remove(lastAction.id); updateSelects(); } catch (e) { }
+            } else if (lastAction.type === 'edit') {
+                try { nodes.update({ id: lastAction.id, label: lastAction.oldLabel }); updateSelects(); } catch (e) { }
+            }
+        }
+        
+        function resetAll() {
+            nodes.clear(); edges.clear(); historyStack = []; updateSelects();
+        }
+
+        window.addEventListener('keydown', function(e) {
+            if (e.key === "Delete" || e.key === "Backspace") {
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
+                    deleteSelected();
+                }
+            }
+        });
+
+        function exportSession() {
+            const positions = network.getPositions();
+            const nodesData = nodes.get().map(node => {
+                if (positions[node.id]) {
+                    return { ...node, x: positions[node.id].x, y: positions[node.id].y };
+                }
+                return node;
+            });
+            const data = JSON.stringify({ nodes: nodesData, edges: edges.get() });
+            const blob = new Blob([data], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Genogram-Sesja-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function importSession(e) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const imported = JSON.parse(event.target.result);
+                nodes.clear(); edges.clear(); historyStack = [];
+                nodes.add(imported.nodes);
+                edges.add(imported.edges);
+                setTimeout(() => network.fit(), 100);
+                updateSelects();
+            };
+            reader.readAsText(e.target.files[0]);
+        }
+
+        function toggleQuestionsModal() {
+            const modal = document.getElementById('questionsModal');
+            modal.classList.toggle('hidden');
+        }
+
+        const systemicContent = {
+            'cyrkularne': `<h4 class="font-black text-indigo-600 text-lg mb-2">PYTANIA CYRKULARNE</h4>
+                      <ul class="list-disc pl-5 space-y-2">
+                        <li>Jak myślisz, co czuje ojciec, gdy matka krzyczy na brata?</li>
+                        <li>Kto w rodzinie najbardziej martwi się problemem pacjenta?</li>
+                        <li>Gdyby problem zniknął jutro, czyje życie zmieniłoby się najbardziej?</li>
+                        <li>Kto z kim trzyma sztamę, gdy dochodzi do kłótni?</li>
+                      </ul>`,
+            'cykl': `<h4 class="font-black text-emerald-600 text-lg mb-2">CYKL ŻYCIA RODZINY</h4>
+                           <ul class="list-disc pl-5 space-y-2">
+                           <li>W jakiej normatywnej fazie znajduje się obecnie rodzina? (np. opuszczenie gniazda, małe dzieci, emerytura).</li>
+                           <li>Czy przejście do kolejnej fazy zostało zablokowane?</li>
+                           <li>Jakie nieprzewidziane kryzysy nałożyły się na kryzysy normatywne (np. nagła choroba, utrata pracy)?</li>
+                         </ul>`,
+            'hipotezy': `<h4 class="font-black text-blue-600 text-lg mb-2">HIPOTEZY SYSTEMOWE</h4>
+                   <ul class="list-disc pl-5 space-y-2">
+                     <li>Jaką <b>funkcję</b> pełni objaw pacjenta w tym systemie rodzinnym? Czego pozwala uniknąć?</li>
+                     <li>Czy objaw scala małżeństwo rodziców, które inaczej by się rozpadło?</li>
+                     <li>W jaki sposób działania mające na celu rozwiązanie problemu (tzw. "więcej tego samego") w rzeczywistości go podtrzymują?</li>
+                   </ul>`,
+            'mity': `<h4 class="font-black text-amber-600 text-lg mb-2">MITY I SEKRETY</h4>
+                      <ul class="list-disc pl-5 space-y-2">
+                        <li>Jakie przekonania ("mity") organizują życie tej rodziny? (np. "Jesteśmy rodziną pechowców", "Kobiety u nas muszą cierpieć", "Zawsze damy sobie radę sami").</li>
+                        <li>O czym w rodzinie się NIE rozmawia? Kto strzeże tych tajemnic?</li>
+                        <li>Kto ponosi największe koszty ukrywania prawdy?</li>
+                      </ul>`,
+            'lojalnosci': `<h4 class="font-black text-purple-600 text-lg mb-2">LOJALNOŚCI I DELEGACJE</h4>
+                           <ul class="list-disc pl-5 space-y-2">
+                             <li>Czyje niespełnione ambicje realizuje dany członek rodziny (delegacja)?</li>
+                             <li>Czy występuje konflikt lojalności u dziecka? (Niemożność bycia lojalnym wobec ojca i matki jednocześnie).</li>
+                             <li>Kto w poprzednich pokoleniach został zapomniany, pominięty lub odrzucony i kto z obecnego pokolenia powtarza jego los (lojalność niewidoczna)?</li>
+                           </ul>`,
+            'granice': `<h4 class="font-black text-rose-600 text-lg mb-2">GRANICE W SYSTEMIE</h4>
+                          <ul class="list-disc pl-5 space-y-2">
+                            <li>Czy granice między podsystemami (rodzice-dzieci) są jasne, zbyt sztywne, czy zatarte (rodzina uwikłana)?</li>
+                            <li>Czy granice zewnętrzne chronią system, czy go izolują od otoczenia?</li>
+                            <li>Czy dochodzi do zjawiska parentyfikacji (dziecko wchodzi w rolę rodzica)?</li>
+                          </ul>`
+        };
+
+        function showQuestion(topic) {
+            document.getElementById('questionContent').innerHTML = systemicContent[topic];
+        }
+    </script>
+</body>
+</html>

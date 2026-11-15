@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="cbt.png" />
+    <title>Technika Tortu - Terapia Poznawczo-Behawioralna</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #1b4332;
+            --secondary-color: #2d6a4f;
+            --bg-color: #f7f3ec;
+            --card-bg: #fffdf9;
+            --text-main: #1b4332;
+            --border-color: #d8c3a5;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e9e1d4 0.75px, transparent 0.75px), radial-gradient(#e9e1d4 0.75px, var(--bg-color) 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .logo-wrapper {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-wrapper a {
+            text-decoration: none;
+            border: none;
+        }
+        .logo-wrapper img {
+            max-height: 80px;
+            width: auto;
+            display: inline-block;
+            border: 0;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(27, 67, 50, 0.08);
+            border: 1px solid var(--border-color);
+            max-width: 1000px;
+            width: 100%;
+        }
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        .right-panel {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            color: var(--primary-color);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        input[type="text"] {
+            flex: 2;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #ffffff;
+            color: var(--text-main);
+        }
+        input[type="number"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #ffffff;
+            color: var(--text-main);
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-add {
+            background-color: #52b788;
+            color: white;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-add:hover { background-color: #40916c; }
+        .btn-remove {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 12px;
+        }
+        .btn-remove:hover { background-color: #5a6268; }
+        .btn-save {
+            background-color: #52b788;
+            color: white;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+        }
+        .btn-save:hover { background-color: #40916c; }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status.ok { background-color: #e5ede6; color: #2d6a4f; border: 1px solid #52b788; }
+        .status.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        canvas {
+            max-width: 100%;
+            max-height: 400px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-wrapper">
+        <a href="index.html" title="Powrót do strony głównej"><img src="logo.png" alt="Logo"></a>
+    </div>
+
+<div class="container">
+    <div class="left-panel">
+        <h1>Technika Tortu</h1>
+        <p>Wprowadź czynniki i określ ich udział procentowy. Suma powinna wynosić 100%.</p>
+        
+        <div id="inputs-container">
+            </div>
+
+        <button class="btn-add" onclick="addRow()">+ Dodaj kolejny czynnik</button>
+
+        <div id="sum-status" class="status ok">Suma: 0%</div>
+    </div>
+
+    <div class="right-panel">
+        <canvas id="pieChart"></canvas>
+        <button class="btn-save" onclick="saveAsJPG()">Zapisz wykres jako JPG</button>
+    </div>
+</div>
+
+<script>
+    let chartInstance = null;
+    const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#EA6B66', '#87D37C', '#F64747', '#3FC380'];
+
+    // Inicjalizacja domyślnych wierszy
+    window.onload = function() {
+        addRow("Czynnik A", 50);
+        addRow("Czynnik B", 50);
+        updateChart();
+    };
+
+    function addRow(name = "", value = "") {
+        const container = document.getElementById('inputs-container');
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        
+        row.innerHTML = `
+            <input type="text" placeholder="Nazwa czynnika" value="${name}" oninput="updateChart()">
+            <input type="number" placeholder="%" value="${value}" min="0" max="100" oninput="updateChart()">
+            <button class="btn-remove" onclick="removeRow(this)">X</button>
+        `;
+        container.appendChild(row);
+        updateChart();
+    }
+
+    function removeRow(btn) {
+        btn.parentElement.remove();
+        updateChart();
+    }
+
+    // Wtyczka do renderowania białego tła (niezbędne do poprawnego pliku JPG)
+    const whiteBackgroundPlugin = {
+        id: 'customCanvasBackgroundColor',
+        beforeDraw: (chart, args, options) => {
+            const {ctx} = chart;
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.fillStyle = options.color || '#ffffff';
+            ctx.fillRect(0, 0, chart.width, chart.height);
+            ctx.restore();
+        }
+    };
+
+    function updateChart() {
+        const rows = document.querySelectorAll('.item-row');
+        let labels = [];
+        let data = [];
+        let sum = 0;
+
+        rows.forEach(row => {
+            const name = row.children[0].value || "Brak nazwy";
+            const val = parseFloat(row.children[1].value) || 0;
+            labels.push(name);
+            data.push(val);
+            sum += val;
+        });
+
+        // Aktualizacja statusu sumy
+        const statusDiv = document.getElementById('sum-status');
+        statusDiv.innerText = "Suma: " + sum + "%";
+        if(sum === 100) {
+            statusDiv.className = "status ok";
+        } else {
+            statusDiv.className = "status error";
+        }
+
+        // Aktualizacja wykresu
+        const ctx = document.getElementById('pieChart').getContext('2d');
+        
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors.slice(0, data.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    customCanvasBackgroundColor: { color: 'white' }
+                }
+            },
+            plugins: [whiteBackgroundPlugin]
+        });
+    }
+
+    function saveAsJPG() {
+        const canvas = document.getElementById('pieChart');
+        const link = document.createElement('a');
+        link.download = 'technika_tortu.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 1.0);
+        link.click();
+    }
+</script>
+
+</body>
+</html>

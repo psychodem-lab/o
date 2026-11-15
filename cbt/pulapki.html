@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="cbt.png" />
+    <title>Narzędzie Pracy ze Zniekształceniami Poznawczymi (CBT)</title>
+    <style>
+               .logo-wrapper {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .logo-wrapper a {
+            text-decoration: none;
+            border: none;
+        }
+
+        .logo-wrapper img {
+            max-height: 100px; 
+            width: auto;
+            display: inline-block;
+            margin-top: 0; 
+            border: 0;
+        }
+        :root {
+            --primary-color: #1b4332;
+            --secondary-color: #2d6a4f;
+            --bg-color: #f7f3ec;
+            --card-bg: #fffdf9;
+            --text-main: #1b4332;
+            --text-light: #40916c;
+            --border-color: #d8c3a5;
+            --success-color: #52b788;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e9e1d4 0.75px, transparent 0.75px), radial-gradient(#e9e1d4 0.75px, var(--bg-color) 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(27, 67, 50, 0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--text-main);
+            margin-top: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .step {
+            font-weight: 600;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .step.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            margin-bottom: -13px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        /* Sekcja wyboru */
+        .distortion-item {
+            border: 1px solid var(--border-color);
+            padding: 18px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            background: #ffffff;
+            transition: background 0.2s;
+        }
+
+        .distortion-item:hover {
+            background-color: #fcfbf9;
+        }
+
+        .distortion-label {
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+        }
+
+        .distortion-label input {
+            margin-top: 6px;
+            margin-right: 15px;
+            transform: scale(1.3);
+        }
+
+        .distortion-content h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.15rem;
+        }
+
+        .distortion-desc {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .distortion-example {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-style: italic;
+            background: #f4eee3;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--secondary-color);
+        }
+
+        /* Suwaki */
+        .rating-item {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #fffdf9;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        input[type=range] {
+            flex-grow: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: #e2d9cd;
+            accent-color: var(--primary-color);
+        }
+
+        .score-display {
+            font-weight: 800;
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            min-width: 40px;
+        }
+
+        /* Obszar Pracy */
+        .work-box {
+            background: #ffffff;
+            border: 2px solid var(--primary-color);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .label-important {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            resize: vertical;
+            min-height: 80px;
+            box-sizing: border-box;
+        }
+
+        .socratic-section {
+            background: #f0fdf4;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .socratic-questions ul {
+            padding-left: 20px;
+        }
+
+        .socratic-questions li {
+            margin-bottom: 10px;
+            color: #166534;
+            font-weight: 500;
+        }
+
+        /* Raport */
+        .report-section {
+            border-top: 2px solid #eee;
+            margin-top: 20px;
+            padding-top: 20px;
+        }
+
+        .summary-card {
+            background: #fffdf9;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .all-distortions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .all-distortions-table th, .all-distortions-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hidden { display: none; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; }
+            .step-indicator, .btn, .btn-secondary, .no-print { display: none !important; }
+            .hidden { display: none; }
+            #view-5 { display: block !important; }
+            .summary-card { border: 1px solid #ccc; page-break-inside: avoid; }
+            textarea { border: none; padding: 0; }
+        }
+    </style>
+       <div class="logo-wrapper">
+            <a href="https://psychodem-lab.github.io/CBT/Biblioteka" title="Powrót do strony głównej">
+                <img src="logo.png" alt="Logo Psychodem">
+            </a>
+        </div>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="no-print">Praca ze Zniekształceniami Poznawczymi</h1>
+    
+    <div class="step-indicator no-print">
+        <span id="ind-1" class="step active">1. Identyfikacja</span>
+        <span id="ind-2" class="step">2. Skala</span>
+        <span id="ind-3" class="step">3. Priorytet</span>
+        <span id="ind-4" class="step">4. Analiza</span>
+    </div>
+
+    <div id="view-1">
+        <p>Według teorii CBT, nasze emocje wynikają z interpretacji zdarzeń. Zaznacz zniekształcenia, które zauważasz w swoim myśleniu:</p>
+        <div id="distortions-list"></div>
+        <button onclick="goToRating()" class="btn">Dalej: Oceń nasilenie</button>
+    </div>
+
+    <div id="view-2" class="hidden">
+        <p>W skali 0-10, jak silnie lub jak często te zniekształcenia wpływają na Twoje życie?</p>
+        <div id="ratings-list"></div>
+        <button onclick="goToPriority()" class="btn">Dalej: Wybierz temat pracy</button>
+        <button onclick="goBack(1)" class="btn btn-secondary">Wróć</button>
+    </div>
+
+    <div id="view-3" class="hidden">
+        <p>Wybierz <strong>jedno</strong> zniekształcenie, nad którym chcesz teraz popracować w oparciu o fakty:</p>
+        <div id="priority-list"></div>
+        <button onclick="goToWork()" class="btn">Rozpocznij analizę</button>
+        <button onclick="goBack(2)" class="btn btn-secondary">Wróć</button>
+    </div>
+
+    <div id="view-4" class="hidden">
+        <div id="work-info"></div>
+        
+        <div class="work-box">
+            <label class="label-important">1. Moja konkretna myśl (opis sytuacji/zdarzenia):</label>
+            <textarea id="user-thought" placeholder="Np. 'Szef nie odpisał na maila przez 2 godziny, na pewno jest ze mnie niezadowolony i mnie zwolni'"></textarea>
+            
+            <div id="socratic-content"></div>
+            
+            <label class="label-important" style="margin-top:20px;">2. Moja racjonalna riposta (Alternatywa oparta na faktach):</label>
+            <textarea id="rational-response" placeholder="Np. 'Szef jest bardzo zajętą osobą. Brak odpowiedzi przez 2h nie jest dowodem na zwolnienie. Moja praca jest oceniana wysoko.'"></textarea>
+        </div>
+        
+        <button onclick="finishSession()" class="btn" style="background-color: var(--success-color)">Generuj raport końcowy</button>
+        <button onclick="goBack(3)" class="btn btn-secondary">Wróć do wyboru</button>
+    </div>
+
+    <div id="view-5" class="hidden">
+        <h2 style="text-align:center; border-bottom: 2px solid #000; padding-bottom:10px;">Raport z Sesji Restrukturyzacji Poznawczej</h2>
+        <p id="print-date"></p>
+
+        <section class="report-section">
+            <h3>I. Praca nad wybranym zniekształceniem</h3>
+            <div class="summary-card">
+                <p><strong>Typ zniekształcenia:</strong> <span id="sum-name"></span></p>
+                <p><strong>Zapisana myśl automatyczna:</strong></p>
+                <p id="sum-user-thought" style="font-style: italic; color: #b91c1c;"></p>
+                <hr>
+                <p><strong>Racjonalna riposta (Fakty i Alternatywy):</strong></p>
+                <p id="sum-rational-response" style="font-style: italic; color: #065f46; font-weight: 500;"></p>
+            </div>
+        </section>
+
+        <section class="report-section">
+            <h3>II. Zidentyfikowany profil poznawczy</h3>
+            <p>Lista wszystkich zniekształceń zaznaczonych podczas tej sesji:</p>
+            <table class="all-distortions-table" id="all-distortions-table">
+                <thead>
+                    <tr>
+                        <th>Nazwa zniekształcenia</th>
+                        <th>Nasilenie (0-10)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <div class="no-print">
+            <button onclick="window.print()" class="btn btn-outline">🖨️ Zapisz jako PDF / Drukuj</button>
+            <button onclick="location.reload()" class="btn">Nowa sesja</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const distortionsData = [
+        { id: 'all-or-nothing', name: 'Myślenie "wszystko albo nic"', desc: 'Widzenie świata w czarno-białych barwach.', example: 'Jeśli nie odniosę pełnego sukcesu, jestem zerem.', questions: ['Czy istnieje stan pośredni?', 'Czy 80% to naprawdę to samo co 0%?'] },
+        { id: 'overgeneralization', name: 'Nadmierne uogólnianie', desc: 'Pojedynczy błąd postrzegasz jako wzorzec porażki.', example: 'Zawsze mi się to przytrafia. Nigdy nie wygram.', questions: ['Czy "zawsze" jest faktem czy Twoim odczuciem?', 'Ile razy sytuacja potoczyła się inaczej?'] },
+        { id: 'mental-filter', name: 'Filtr mentalny', desc: 'Skupianie się wyłącznie na negatywach.', example: 'Jedna krytyczna uwaga niszczy radość z całego dnia.', questions: ['Jakie pozytywne fakty obecnie ignorujesz?', 'Gdybyś miał opisać sytuację kamerą wideo, co by zarejestrowała?'] },
+        { id: 'disqualifying-positive', name: 'Dyskwalifikowanie pozytywów', desc: 'Twierdzenie, że sukcesy "się nie liczą".', example: 'Udało mi się, bo miałem szczęście, a nie dzięki umiejętnościom.', questions: ['Dlaczego odmawiasz sobie zasług?', 'Jakie konkretne umiejętności pozwoliły Ci to osiągnąć?'] },
+        { id: 'jumping-conclusions-1', name: 'Czytanie w myślach', desc: 'Zakładanie, że wiesz, co inni o Tobie myślą.', example: 'On uważa, że jestem nudny.', questions: ['Czy masz twardy dowód na to, co on myśli?', 'Jakie są inne możliwe powody jego zachowania?'] },
+        { id: 'jumping-conclusions-2', name: 'Przepowiadanie przyszłości', desc: 'Przewidywanie najgorszego bez dowodów.', example: 'Na pewno spanikuję na prezentacji.', questions: ['Czy jesteś w stanie przewidzieć przyszłość ze 100% pewnością?', 'Jakie masz zasoby, by poradzić sobie, gdyby było trudniej?'] },
+        { id: 'magnification', name: 'Katastrofizacja', desc: 'Wyolbrzymianie problemów do rangi tragedii.', example: 'To straszne, że popełniłem ten błąd. To koniec.', questions: ['Jakie znaczenie będzie to miało za rok?', 'Jak poradziłbyś sobie, gdyby najgorsze się stało?'] },
+        { id: 'emotional-reasoning', name: 'Uzasadnianie emocjonalne', desc: 'Wierzenie, że emocje to fakty.', example: 'Czuję lęk, więc to miejsce musi być niebezpieczne.', questions: ['Czy uczucie to dowód rzeczowy?', 'Czy czułeś się tak kiedyś, a rzeczywistość była inna?'] },
+        { id: 'should-statements', name: 'Nadużywanie "powinienem"', desc: 'Sztywne zasady wobec siebie i innych.', example: 'Nie powinienem czuć się smutny.', questions: ['Co by się stało, gdybyś zamienił "muszę" na "chciałbym"?', 'Czy ta zasada Ci pomaga, czy Cię paraliżuje?'] },
+        { id: 'labeling', name: 'Etykietowanie', desc: 'Przyklejanie łatek zamiast opisu zachowania.', example: 'Jestem idiotą (zamiast: Popełniłem błąd).', questions: ['Czy człowiek jest tym samym co jego błąd?', 'Czy jedna cecha definiuje 100% Twojej osobowości?'] },
+        { id: 'blaming', name: 'Obwinianie', desc: 'Zrzucanie całej odpowiedzialności za swoje problemy na innych, ignorując własny wpływ na sytuację.', example: 'To przez mojego partnera jestem wciąż nieszczęśliwa i zła.', questions: ['Czy jedna osoba może w 100% odpowiadać za to, jak wygląda Twoje życie?', 'Jaką część odpowiedzialności za obecną sytuację możesz wziąć na siebie?'] },
+        { id: 'minimization', name: 'Minimalizacja', desc: 'Nieuzasadnione pomniejszanie wagi swoich osiągnięć, dobrych cech lub problemów u innych osób.', example: 'Dostałem awans, ale to nic wielkiego, w tej firmie każdy go w końcu dostaje.', questions: ['Gdyby Twój przyjaciel osiągnął to samo, czy też byś uznał, że to "nic wielkiego"?', 'Dlaczego stosujesz surowsze kryteria oceniania wobec siebie niż wobec innych?'] },
+        { id: 'personalization', name: 'Personalizacja', desc: 'Branie winy za rzeczy poza Twoją kontrolą.', example: 'To moja wina, że on ma zły humor.', questions: ['Czy masz pełną kontrolę nad emocjami innej osoby?', 'Jakie inne czynniki mogły wpłynąć na tę sytuację?'] }
+    ];
+
+    let state = { selectedIds: [], ratings: {}, currentWorkId: null };
+
+    function initDistortionsList() {
+        const container = document.getElementById('distortions-list');
+        container.innerHTML = distortionsData.map(dist => `
+            <div class="distortion-item">
+                <label class="distortion-label">
+                    <input type="checkbox" value="${dist.id}" onchange="handleSelection(this)">
+                    <div class="distortion-content">
+                        <h3>${dist.name}</h3>
+                        <div class="distortion-desc">${dist.desc}</div>
+                        <div class="distortion-example">Przykład: ${dist.example}</div>
+                    </div>
+                </label>
+            </div>
+        `).join('');
+    }
+
+    function handleSelection(checkbox) {
+        if (checkbox.checked) state.selectedIds.push(checkbox.value);
+        else state.selectedIds = state.selectedIds.filter(id => id !== checkbox.value);
+    }
+
+    function goToRating() {
+        if (state.selectedIds.length === 0) return alert('Zaznacz min. jedno zniekształcenie.');
+        const container = document.getElementById('ratings-list');
+        container.innerHTML = state.selectedIds.map(id => {
+            const dist = distortionsData.find(d => d.id === id);
+            state.ratings[id] = 5;
+            return `
+                <div class="rating-item">
+                    <h3>${dist.name}</h3>
+                    <div class="slider-container">
+                        <span>0</span><input type="range" min="0" max="10" value="5" oninput="updateRating('${id}', this.value)"><span>10</span>
+                        <span class="score-display" id="score-${id}">5</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        switchView(2);
+    }
+
+    function updateRating(id, val) {
+        state.ratings[id] = parseInt(val);
+        document.getElementById(`score-${id}`).innerText = val;
+    }
+
+    function goToPriority() {
+        const container = document.getElementById('priority-list');
+        const sorted = [...state.selectedIds].sort((a,b) => state.ratings[b] - state.ratings[a]);
+        container.innerHTML = sorted.map((id, idx) => {
+            const dist = distortionsData.find(d => d.id === id);
+            return `
+                <div class="distortion-item">
+                    <label class="distortion-label">
+                        <input type="radio" name="priority" value="${id}" ${idx===0?'checked':''}>
+                        <div class="distortion-content">
+                            <h3>${dist.name} (Siła: ${state.ratings[id]}/10)</h3>
+                        </div>
+                    </label>
+                </div>
+            `;
+        }).join('');
+        switchView(3);
+    }
+
+    function goToWork() {
+        state.currentWorkId = document.querySelector('input[name="priority"]:checked').value;
+        const dist = distortionsData.find(d => d.id === state.currentWorkId);
+        document.getElementById('work-info').innerHTML = `
+            <h2>Analiza: ${dist.name}</h2>
+            <p>${dist.desc}</p>
+        `;
+        document.getElementById('socratic-content').innerHTML = `
+            <div class="socratic-section">
+                <h3>Pytania pomagające podważyć to zniekształcenie:</h3>
+                <ul>${dist.questions.map(q => `<li>${q}</li>`).join('')}</ul>
+            </div>
+        `;
+        switchView(4);
+    }
+
+    function finishSession() {
+        const thought = document.getElementById('user-thought').value;
+        const response = document.getElementById('rational-response').value;
+        if(!thought || !response) return alert("Wypełnij oba pola pracy nad myśleniem.");
+
+        const dist = distortionsData.find(d => d.id === state.currentWorkId);
+        document.getElementById('sum-name').innerText = dist.name;
+        document.getElementById('sum-user-thought').innerText = thought;
+        document.getElementById('sum-rational-response').innerText = response;
+        document.getElementById('print-date').innerText = "Data sesji: " + new Date().toLocaleString();
+
+        const tableBody = document.querySelector('#all-distortions-table tbody');
+        tableBody.innerHTML = state.selectedIds.map(id => {
+            const d = distortionsData.find(x => x.id === id);
+            return `<tr><td>${d.name}</td><td>${state.ratings[id]}/10</td></tr>`;
+        }).join('');
+
+        switchView(5);
+    }
+
+    function switchView(n) {
+        document.querySelectorAll('[id^="view-"]').forEach(v => v.classList.add('hidden'));
+        document.getElementById(`view-${n}`).classList.remove('hidden');
+        document.querySelectorAll('.step').forEach((s, i) => {
+            if(i < n) s.classList.add('active'); else s.classList.remove('active');
+        });
+    }
+
+    function goBack(n) { switchView(n); }
+    initDistortionsList();
+</script>
+</body>
+</html>
