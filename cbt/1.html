@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Konceptualizacja przypadku CBT i model sieciowy</title>
+<script>
+  // Ustaw motyw przed pierwszym malowaniem, żeby uniknąć błysku jasnego tła
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('cbt-theme'); } catch (e) {}
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+  /* ---------- Tokeny: jasny motyw ---------- */
+  :root, :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #ECEFEC;
+    --surface: #F6F8F6;
+    --surface-2: #E9EEEB;
+    --canvas: #F9FAF8;
+    --line: #D2DAD5;
+    --ink: #27322E;
+    --ink-2: #4F5E58;
+    --ink-3: #6F7D77;
+    --accent: #3E7A72;
+    --accent-hover: #346A63;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #DAE9E5;
+    --danger: #9F4B45;
+    --danger-soft: #F1DEDB;
+    --focus: #2F6F9F;
+
+    --n-trigger-bg: #F3E7C9;       --n-trigger-bd: #C9A24D;       --n-trigger-tx: #5C4513;
+    --n-thought-bg: #D9E5F0;       --n-thought-bd: #6E94B8;       --n-thought-tx: #26425E;
+    --n-emotion-bg: #F1D9D6;       --n-emotion-bd: #C27A74;       --n-emotion-tx: #6A2B27;
+    --n-physiology-bg: #E4DCF0;    --n-physiology-bd: #9381B8;    --n-physiology-tx: #3F3260;
+    --n-behavior-bg: #D8EBDD;      --n-behavior-bd: #6FA484;      --n-behavior-tx: #234A33;
+    --n-consequence-bg: #D5EAEA;   --n-consequence-bd: #5FA3A3;   --n-consequence-tx: #1F4B4B;
+    --n-vulnerability-bg: #E3E6E4; --n-vulnerability-bd: #8A9690; --n-vulnerability-tx: #3A4642;
+
+    --e-nasila: #B5605A;
+    --e-oslabia: #5E8F6B;
+    --e-wzajemne: #51605A;
+    --e-podtrzymuje: #86948D;
+  }
+
+  /* ---------- Tokeny: ciemny motyw ---------- */
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #141A1B;
+    --surface: #1C2324;
+    --surface-2: #232B2D;
+    --canvas: #182021;
+    --line: #313B3D;
+    --ink: #D6DEDB;
+    --ink-2: #A5B2AD;
+    --ink-3: #82908A;
+    --accent: #7DBDB2;
+    --accent-hover: #93CBC1;
+    --accent-ink: #0F1A18;
+    --accent-soft: #233634;
+    --danger: #DE938C;
+    --danger-soft: #3A2725;
+    --focus: #8BBDE3;
+
+    --n-trigger-bg: #3A3320;       --n-trigger-bd: #A38A45;       --n-trigger-tx: #EBDCB0;
+    --n-thought-bg: #26364A;       --n-thought-bd: #5F86AD;       --n-thought-tx: #C9DCEE;
+    --n-emotion-bg: #432B2A;       --n-emotion-bd: #B26F69;       --n-emotion-tx: #F0CBC7;
+    --n-physiology-bg: #34304A;    --n-physiology-bd: #8574B0;    --n-physiology-tx: #DDD3F0;
+    --n-behavior-bg: #25392E;      --n-behavior-bd: #5E9475;      --n-behavior-tx: #CBE6D5;
+    --n-consequence-bg: #234040;   --n-consequence-bd: #55999A;   --n-consequence-tx: #C6E6E6;
+    --n-vulnerability-bg: #2C3331; --n-vulnerability-bd: #7B8883; --n-vulnerability-tx: #D2DAD6;
+
+    --e-nasila: #D98C85;
+    --e-oslabia: #86BE95;
+    --e-wzajemne: #A9B6B0;
+    --e-podtrzymuje: #82908A;
+  }
+
+  /* ---------- Baza ---------- */
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background-color .25s ease, color .25s ease;
+  }
+  h1, h2, h3, h4, p { margin: 0; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .hidden { display: none !important; }
+  .print-only { display: none; }
+
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+
+  /* ---------- Nagłówek ---------- */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 30;
+  }
+  .app-header-inner {
+    max-width: 1480px; margin: 0 auto;
+    padding: 10px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-mark {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--accent-soft); color: var(--accent);
+    display: grid; place-items: center; flex: none;
+  }
+  .brand h1 { font-size: 1.1rem; font-weight: 700; line-height: 1.25; }
+  .brand p { font-size: .85rem; color: var(--ink-2); }
+  .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* ---------- Przyciski ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 42px; padding: 8px 16px;
+    border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink);
+    font-weight: 700; font-size: .95rem; line-height: 1.2;
+    cursor: pointer; text-decoration: none;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .btn:hover { background: var(--surface-2); border-color: var(--ink-3); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn-danger { color: var(--danger); background: var(--danger-soft); border-color: transparent; }
+  .btn-danger:hover { background: var(--danger-soft); border-color: var(--danger); }
+  .btn-quiet { border-color: transparent; background: transparent; }
+  .btn-quiet:hover { background: var(--surface-2); border-color: transparent; }
+  .btn-sm { min-height: 36px; padding: 6px 12px; font-size: .88rem; }
+  .btn-block { width: 100%; }
+  .btn svg { flex: none; }
+
+  /* Zintegrowana grupa przycisków szablonów */
+  .btn-split-group {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--accent);
+  }
+  .btn-split-group .btn {
+    border-radius: 0;
+    border: none;
+  }
+  .btn-split-group .btn-main {
+    padding-right: 12px;
+    border-right: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .btn-split-group .btn-add {
+    padding: 8px 12px;
+  }
+  .btn-split-group .btn-add:hover {
+    background: var(--accent-hover);
+  }
+
+  /* ---------- Menu Plik ---------- */
+  .menu { position: relative; }
+  .menu > summary { list-style: none; }
+  .menu > summary::-webkit-details-marker { display: none; }
+  .menu-panel {
+    position: absolute; right: 0; top: calc(100% + 8px); z-index: 40;
+    min-width: 270px; padding: 8px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  }
+  .menu-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 10px 12px; border: 0; border-radius: 8px; background: transparent;
+    text-align: left; font-size: .95rem; cursor: pointer; color: var(--ink);
+  }
+  .menu-item:hover { background: var(--surface-2); }
+  .menu-sep { height: 1px; background: var(--line); margin: 6px 4px; }
+  .menu-group { padding: 6px 12px 2px; font-size: .8rem; color: var(--ink-3); }
+
+  /* ---------- Układ ---------- */
+  .layout {
+    max-width: 1480px; width: 100%; margin: 0 auto;
+    padding: 20px; flex: 1;
+    display: grid; grid-template-columns: 1fr; gap: 20px;
+  }
+  @media (min-width: 1100px) {
+    .layout { grid-template-columns: 380px minmax(0, 1fr); align-items: start; }
+    .sidebar { position: sticky; top: 84px; max-height: calc(100vh - 104px); overflow-y: auto; padding-right: 4px; }
+  }
+  .sidebar { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ---------- Karty panelu bocznego ---------- */
+  .panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  }
+  .panel > summary {
+    list-style: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 18px; font-weight: 700; font-size: 1.02rem;
+    border-radius: 16px;
+  }
+  .panel > summary::-webkit-details-marker { display: none; }
+  .panel > summary .chev { transition: transform .2s ease; color: var(--ink-3); }
+  .panel[open] > summary .chev { transform: rotate(180deg); }
+  .panel-body { padding: 2px 18px 18px; display: flex; flex-direction: column; gap: 14px; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field > label, .field > .label { font-size: .92rem; font-weight: 700; color: var(--ink-2); }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 420px) { .row-2 { grid-template-columns: 1fr; } }
+
+  input[type="text"], input[type="date"], select, textarea {
+    width: 100%; min-height: 44px; padding: 10px 12px;
+    background: var(--canvas); border: 1px solid var(--line); border-radius: 10px;
+    font-size: 1rem; line-height: 1.4;
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+  textarea { resize: vertical; min-height: 84px; }
+  input::placeholder, textarea::placeholder { color: var(--ink-3); opacity: 1; }
+  input:hover, select:hover, textarea:hover { border-color: var(--ink-3); }
+  input:focus, select:focus, textarea:focus { outline: 3px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
+  select { text-overflow: ellipsis; }
+
+  /* ---------- Karta płótna ---------- */
+  .canvas-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0;
+  }
+  .canvas-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    padding: 2px 4px;
+  }
+  .model-title { font-weight: 700; font-size: 1.05rem; }
+  .count-badge {
+    font-size: .85rem; color: var(--ink-2); background: var(--surface-2);
+    padding: 3px 10px; border-radius: 999px; margin-left: 10px; font-weight: 400;
+  }
+  .canvas-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .network-wrap { position: relative; }
+  #network-container {
+    width: 100%;
+    height: clamp(440px, calc(100vh - 280px), 780px);
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    transition: background-color .25s ease;
+  }
+  .empty-hint {
+    position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+    padding: 24px; color: var(--ink-2); pointer-events: none;
+  }
+  .empty-hint div { max-width: 340px; }
+  .empty-hint strong { display: block; color: var(--ink); font-size: 1.05rem; margin-bottom: 4px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 4px 6px; font-size: .92rem; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .swatch { width: 14px; height: 14px; border-radius: 50%; border: 2px solid; flex: none; }
+  .sw-trigger { background: var(--n-trigger-bg); border-color: var(--n-trigger-bd); }
+  .sw-thought { background: var(--n-thought-bg); border-color: var(--n-thought-bd); }
+  .sw-emotion { background: var(--n-emotion-bg); border-color: var(--n-emotion-bd); }
+  .sw-physiology { background: var(--n-physiology-bg); border-color: var(--n-physiology-bd); }
+  .sw-behavior { background: var(--n-behavior-bg); border-color: var(--n-behavior-bd); }
+  .sw-consequence { background: var(--n-consequence-bg); border-color: var(--n-consequence-bd); }
+  .sw-vulnerability { background: var(--n-vulnerability-bg); border-color: var(--n-vulnerability-bd); }
+  .hint { font-size: .9rem; color: var(--ink-3); padding: 0 6px 2px; }
+
+  /* ---------- Modale ---------- */
+  .modal {
+    position: fixed; inset: 0; z-index: 50; padding: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(12, 18, 17, .55);
+  }
+  .modal.hidden { display: none !important; }
+  .modal-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    width: 100%; max-width: 560px; max-height: 90vh;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  .modal-card.wide { max-width: 920px; }
+  .modal-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    padding: 18px 22px; border-bottom: 1px solid var(--line);
+  }
+  .modal-head h3 { font-size: 1.15rem; font-weight: 700; }
+  .modal-head p { font-size: .92rem; color: var(--ink-2); margin-top: 2px; }
+  .modal-body { padding: 18px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+  .modal-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    padding: 14px 22px; border-top: 1px solid var(--line); background: var(--surface-2);
+  }
+  .modal-foot .note { font-size: .88rem; color: var(--ink-2); }
+  .icon-btn {
+    width: 40px; height: 40px; display: grid; place-items: center; flex: none;
+    border: 0; background: transparent; border-radius: 10px; cursor: pointer; color: var(--ink-2);
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+  .models-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 720px) { .models-grid { grid-template-columns: 1fr 1fr; } }
+  .model-card {
+    display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
+    padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--canvas);
+    transition: border-color .15s ease;
+  }
+  .model-card:hover { border-color: var(--accent); }
+  .model-card h4 { font-size: 1.02rem; font-weight: 700; margin: 8px 0 4px; line-height: 1.3; }
+  .model-card p { font-size: .93rem; color: var(--ink-2); }
+  .model-meta { display: flex; justify-content: space-between; gap: 8px; font-size: .85rem; color: var(--ink-2); }
+  .tag { background: var(--accent-soft); color: var(--accent); padding: 2px 10px; border-radius: 999px; font-weight: 700; }
+
+  /* ---------- Powiadomienie ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; z-index: 60;
+    transform: translate(-50%, 160%); opacity: 0;
+    transition: transform .3s ease, opacity .3s ease;
+    background: var(--ink); color: var(--surface);
+    padding: 12px 18px; border-radius: 12px; max-width: calc(100vw - 32px);
+    display: flex; align-items: center; gap: 10px; font-size: .95rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .toast-dot { width: 10px; height: 10px; border-radius: 50%; background: #7DBDB2; flex: none; }
+  .toast-dot.warn { background: #E3B26A; }
+
+  /* Ograniczenie ruchu */
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  /* Wąskie ekrany */
+  @media (max-width: 640px) {
+    .layout { padding: 12px; gap: 14px; }
+    .app-header-inner { padding: 10px 12px; }
+    .brand p { display: none; }
+    .menu-panel { right: -4px; }
+  }
+
+  /* ---------- Druk (raport kliniczny) ---------- */
+  @media print {
+    @page { size: landscape; margin: 1cm; }
+    body { background: #fff !important; color: #000 !important; font-size: 12pt; }
+    .no-print, .app-header, .sidebar, .modal, .toast { display: none !important; }
+    .print-only { display: block !important; }
+    .layout { display: block; padding: 0; }
+    .canvas-card { border: 0; padding: 0; background: #fff; }
+    #network-container { height: 520px !important; border: 1px solid #cbd5e1 !important; background: #fff !important; }
+    .legend { color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Powiadomienie -->
+<div id="toast" class="toast" role="status" aria-live="polite">
+  <span id="toast-dot" class="toast-dot"></span>
+  <span id="toast-msg">Powiadomienie</span>
+</div>
+
+<!-- NAGŁÓWEK -->
+<header class="app-header no-print">
+  <div class="app-header-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M7.3 7.2l3.4 8.8M16.7 7.2l-3.4 8.8M7.5 6h9"/></svg>
+      </div>
+      <div>
+        <h1>Konceptualizacja przypadku i sieć CBT</h1>
+        <p>Budowanie modelu procesowego sesji</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="btn-split-group">
+        <button class="btn btn-primary btn-main" onclick="openModelCatalogModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/></svg>
+          Szablony modeli
+        </button>
+        <button class="btn btn-primary btn-add" onclick="openCreateModelModal()" title="Zapisz obecny układ elementów jako nowy szablon" aria-label="Zapisz nowy szablon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+
+      <details class="menu" id="file-menu">
+        <summary class="btn" aria-label="Menu plików">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+          Plik
+        </summary>
+        <div class="menu-panel">
+          <div class="menu-group">Sesja pacjenta</div>
+          <button class="menu-item" onclick="exportSession()">Eksportuj sesję</button>
+          <label class="menu-item" style="cursor:pointer">
+            Importuj sesję
+            <input type="file" id="importSessionInput" class="hidden" accept=".json" onchange="importSession(event)">
+          </label>
+          <div class="menu-sep"></div>
+          <div class="menu-group">Baza szablonów</div>
+          <button class="menu-item" onclick="exportModelsJSON()" title="Pobierz plik modele.json do edycji w kodzie">Pobierz modele.json</button>
+          <label class="menu-item" style="cursor:pointer">
+            Wgraj modele.json
+            <input type="file" id="importModelsInput" class="hidden" accept=".json" onchange="importModelsJSON(event)">
+          </label>
+          <div class="menu-sep"></div>
+          <button class="menu-item" onclick="printReport()">Drukuj lub zapisz jako PDF</button>
+        </div>
+      </details>
+
+      <button class="btn btn-quiet" id="theme-btn" onclick="toggleTheme()" aria-label="Przełącz motyw jasny i ciemny" title="Przełącz motyw">
+        <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        <span id="theme-label">Motyw</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- NAGŁÓWEK RAPORTU (tylko druk) -->
+<div class="print-only" style="padding:12px 0 14px; border-bottom:2px solid #000; margin-bottom:14px;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div>
+      <h1 style="font-size:20pt; font-weight:700;">Raport konceptualizacji przypadku CBT</h1>
+      <p style="font-size:11pt; color:#333;" id="print-model-title">Model: -</p>
+    </div>
+    <div style="text-align:right; font-size:11pt;">
+      <p><strong>Pacjent (ID):</strong> <span id="print-patient-id">-</span></p>
+      <p><strong>Terapeuta:</strong> <span id="print-therapist">-</span></p>
+      <p><strong>Data sesji:</strong> <span id="print-date">-</span></p>
+    </div>
+  </div>
+  <div style="margin-top:12px; font-size:11pt; border-top:1px solid #999; padding-top:8px;" id="print-notes-container">
+    <strong>Kluczowe uwagi kliniczne:</strong>
+    <p id="print-clinical-notes" style="font-style:italic; margin-top:4px;">-</p>
+  </div>
+</div>
+
+<!-- GŁÓWNY UKŁAD -->
+<div class="layout">
+
+  <!-- PANEL BOCZNY -->
+  <aside class="sidebar no-print">
+
+    <details class="panel" open>
+      <summary>
+        <span>Dane pacjenta i sesji</span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="panel-body">
+        <div class="row-2">
+          <div class="field">
+            <label for="patient-id">Pacjent / ID</label>
+            <input type="text" id="patient-id" placeholder="np. Jan Kowalski / P-102" onchange="updatePatientMeta()">
+          </div>
+          <div class="field">
+            <label for="session-date">Data sesji</label>
+            <input type="date" id="session-date" onchange="updatePatientMeta()">
+          </div>
+        </div>
+        <div class="field">
+          <label for="therapist-name">Terapeuta</label>
+          <input type="text" id="therapist-name" placeholder="mgr / dr ..." onchange="updatePatientMeta()">
+        </div>
+        <div class="field">
+          <label for="clinical-notes">Uwagi kliniczne i hipoteza robocza</label>
+          <textarea id="clinical-notes" rows="3" placeholder="Synteza problemu, wyzwalacze, podsumowanie..." onchange="updatePatientMeta()"></textarea>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>
+        <span>Dodaj element do sieci</span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="panel-body">
+        <div class="field">
+          <label for="node-type-select">Wymiar CBT</label>
+          <select id="node-type-select">
+            <option value="trigger">Sytuacja / bodziec wyzwalający</option>
+            <option value="thought">Myśl / przekonanie / poznanie</option>
+            <option value="emotion">Emocja / afekt</option>
+            <option value="physiology">Ciało / fizjologia / somatyka</option>
+            <option value="behavior">Zachowanie / reakcja</option>
+            <option value="consequence">Konsekwencja / błędne koło</option>
+            <option value="vulnerability">Czynnik podatności / historia</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="node-label-input">Nazwa elementu</label>
+          <input type="text" id="node-label-input" placeholder="np. Katastroficzna interpretacja">
+        </div>
+        <div class="field">
+          <label for="node-patient-input">Przykład pacjenta</label>
+          <textarea id="node-patient-input" rows="2" placeholder="np. „Dostanę zawału i nikt mi nie pomoże”"></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="addNewNodeFromSidebar()">Dodaj do modelu</button>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>
+        <span>Połącz elementy strzałką</span>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="panel-body">
+        <div class="field">
+          <label for="edge-from-select">Od</label>
+          <select id="edge-from-select"></select>
+        </div>
+        <div class="field">
+          <label for="edge-to-select">Do</label>
+          <select id="edge-to-select"></select>
+        </div>
+        <div class="field">
+          <label for="edge-relation-select">Rodzaj oddziaływania</label>
+          <select id="edge-relation-select">
+            <option value="NASILA">Nasila / wyzwala (strzałka)</option>
+            <option value="OSŁABIA">Osłabia / hamuje (zakończenie kreską)</option>
+            <option value="WZAJEMNE">Wzajemne wzmocnienie (dwie strzałki)</option>
+            <option value="PODTRZYMUJE">Podtrzymuje (linia przerywana)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="addNewEdgeFromSidebar()">Utwórz połączenie</button>
+      </div>
+    </details>
+
+  </aside>
+
+  <!-- PŁÓTNO -->
+  <main>
+    <section class="canvas-card">
+      <div class="canvas-bar no-print">
+        <div>
+          <span class="model-title" id="current-model-display">Model: własny</span>
+          <span id="node-count-badge" class="count-badge">0 elementów</span>
+        </div>
+        <div class="canvas-actions">
+          <button class="btn btn-sm" onclick="resetLayout()">Wyśrodkuj</button>
+          <button class="btn btn-sm btn-danger" onclick="clearCanvas()">Wyczyść</button>
+        </div>
+      </div>
+
+      <div class="network-wrap">
+        <div id="network-container"></div>
+        <div id="empty-hint" class="empty-hint hidden no-print">
+          <div>
+            <strong>Model jest pusty</strong>
+            Wczytaj szablon z przycisku „Szablony modeli” albo dodaj pierwszy element w panelu po lewej.
+          </div>
+        </div>
+      </div>
+
+      <div class="legend" aria-label="Legenda kolorów">
+        <span><i class="swatch sw-trigger"></i>Sytuacja</span>
+        <span><i class="swatch sw-thought"></i>Poznanie / myśl</span>
+        <span><i class="swatch sw-emotion"></i>Emocja</span>
+        <span><i class="swatch sw-physiology"></i>Ciało</span>
+        <span><i class="swatch sw-behavior"></i>Zachowanie</span>
+        <span><i class="swatch sw-consequence"></i>Konsekwencja</span>
+        <span><i class="swatch sw-vulnerability"></i>Podatność</span>
+      </div>
+      <p class="hint no-print">Kliknij dwukrotnie element, aby go edytować. Zaznacz element i naciśnij Delete, aby go usunąć.</p>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL: EDYCJA ELEMENTU -->
+<div id="editNodeModal" class="modal hidden no-print" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="edit-title">Edycja elementu</h3>
+      <button class="icon-btn" onclick="closeEditModal()" aria-label="Zamknij">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-node-id">
+      <div class="field">
+        <label for="edit-node-type">Wymiar CBT</label>
+        <select id="edit-node-type">
+          <option value="trigger">Sytuacja / bodziec wyzwalający</option>
+          <option value="thought">Myśl / przekonanie / poznanie</option>
+          <option value="emotion">Emocja / afekt</option>
+          <option value="physiology">Ciało / fizjologia / somatyka</option>
+          <option value="behavior">Zachowanie / reakcja</option>
+          <option value="consequence">Konsekwencja / błędne koło</option>
+          <option value="vulnerability">Czynnik podatności / historia</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="edit-node-label">Nazwa elementu</label>
+        <input type="text" id="edit-node-label">
+      </div>
+      <div class="field">
+        <label for="edit-node-patient">Objawy i słowa pacjenta</label>
+        <textarea id="edit-node-patient" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger" onclick="deleteCurrentEditingNode()">Usuń element</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" onclick="closeEditModal()">Anuluj</button>
+        <button class="btn btn-primary" onclick="saveNodeEdit()">Zapisz zmiany</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: KATALOG SZABLONÓW -->
+<div id="modelCatalogModal" class="modal hidden no-print" role="dialog" aria-modal="true" aria-labelledby="catalog-title">
+  <div class="modal-card wide">
+    <div class="modal-head">
+      <div>
+        <h3 id="catalog-title">Szablony modeli CBT</h3>
+        <p>Wybierz gotowy model zaburzenia jako punkt wyjścia.</p>
+      </div>
+      <button class="icon-btn" onclick="closeModelCatalogModal()" aria-label="Zamknij">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- WYSZUKIWARKA MODELI -->
+      <div class="field" style="margin-bottom: 4px;">
+        <label for="model-search-input">Szukaj szablonu</label>
+        <input type="text" id="model-search-input" placeholder="Wpisz nazwę, kogo dotyczy lub kategorię (np. lęk, depresja, panic)..." oninput="filterModelCatalog()">
+      </div>
+      <div class="models-grid" id="models-grid-container"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="note">Bazę szablonów możesz pobrać i edytować w pliku modele.json.</span>
+      <button class="btn" onclick="closeModelCatalogModal()">Zamknij</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: TWORZENIE NOWEGO SZABLONU -->
+<div id="createModelModal" class="modal hidden no-print" role="dialog" aria-modal="true" aria-labelledby="create-model-title">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <h3 id="create-model-title">Zapisz jako nowy szablon</h3>
+        <p>Wprowadź opis modelu, aby wygenerować strukturę JSON wraz z pozycjami elementów.</p>
+      </div>
+      <button class="icon-btn" onclick="closeCreateModelModal()" aria-label="Zamknij">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label for="new-model-title">Tytuł modelu *</label>
+        <input type="text" id="new-model-title" placeholder="np. Model Zaburzenia Lękowego Uogólnionego (GAD)">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label for="new-model-id">Identyfikator (ID)</label>
+          <input type="text" id="new-model-id" placeholder="np. gad_beck (opcjonalnie)">
+        </div>
+        <div class="field">
+          <label for="new-model-category">Kategoria</label>
+          <input type="text" id="new-model-category" placeholder="np. Zaburzenia lękowe">
+        </div>
+      </div>
+      <div class="field">
+        <label for="new-model-desc">Opis modelu</label>
+        <textarea id="new-model-desc" rows="2" placeholder="Krótki opis mechanizmu, autorów lub błędnego koła..."></textarea>
+      </div>
+      <div id="json-output-container" class="field hidden">
+        <label for="generated-json-output">Kod JSON szablonu (gotowy do przekopiowania do modele.json):</label>
+        <textarea id="generated-json-output" rows="6" readonly style="font-family: monospace; font-size: 0.85rem; background: var(--surface-2); color: var(--ink);"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-quiet" onclick="closeCreateModelModal()">Zamknij</button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" id="btn-save-model" onclick="saveNewModelTemplate()">Zapisz i generuj JSON</button>
+        <button class="btn btn-primary hidden" id="btn-copy-json" onclick="copyGeneratedJSON()">Kopiuj JSON</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* =====================================================
+     KOLORY – jedno źródło prawdy w zmiennych CSS
+     ===================================================== */
+  const TYPE_KEYS = ['trigger', 'thought', 'emotion', 'physiology', 'behavior', 'consequence', 'vulnerability'];
+  const REL_KEYS = { 'NASILA': 'nasila', 'OSŁABIA': 'oslabia', 'WZAJEMNE': 'wzajemne', 'PODTRZYMUJE': 'podtrzymuje' };
+  const FONT_FACE = "'Atkinson Hyperlegible', system-ui, sans-serif";
+
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  function palette(type) {
+    const t = TYPE_KEYS.includes(type) ? type : 'thought';
+    return { bg: css(`--n-${t}-bg`), border: css(`--n-${t}-bd`), text: css(`--n-${t}-tx`) };
+  }
+
+  function edgeStyle(rel) {
+    const key = REL_KEYS[rel] || 'nasila';
+    const color = css(`--e-${key}`);
+    let arrows = { to: { enabled: true, type: 'arrow', scaleFactor: 0.8 } };
+    let dashes = false;
+    if (rel === 'OSŁABIA') arrows = { to: { enabled: true, type: 'bar', scaleFactor: 0.8 } };
+    else if (rel === 'WZAJEMNE') arrows = { to: { enabled: true, scaleFactor: 0.8 }, from: { enabled: true, scaleFactor: 0.8 } };
+    else if (rel === 'PODTRZYMUJE') dashes = [6, 6];
+    return { color, dashes, arrows };
+  }
+
+  function inferRel(edge) {
+    if (edge.rel) return edge.rel;
+    if (edge.arrows && edge.arrows.to && edge.arrows.to.type === 'bar') return 'OSŁABIA';
+    if (edge.arrows && edge.arrows.from && edge.arrows.from.enabled) return 'WZAJEMNE';
+    if (edge.dashes) return 'PODTRZYMUJE';
+    return 'NASILA';
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function escLabel(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  }
+
+  /* =====================================================
+     BAZA SZABLONÓW (pobierana z pliku modele.json)
+     ===================================================== */
+  let modelDatabase = [];
+
+  async function loadModelsFromJSON() {
+    try {
+      const response = await fetch('modele.json');
+      if (!response.ok) {
+        throw new Error(`Błąd sieci: ${response.status}`);
+      }
+      modelDatabase = await response.json();
+      renderModelCatalogModalGrid();
+      if (modelDatabase.length > 0) {
+        loadModelIntoCanvas(modelDatabase[0]);
+      }
+    } catch (error) {
+      console.error("Błąd podczas wczytywania modele.json:", error);
+      showToast("Nie udało się pobrać modeli z pliku modele.json", "warn");
+    }
+  }
+
+  /* =====================================================
+     STAN
+     ===================================================== */
+  let nodesDataset = new vis.DataSet([]);
+  let edgesDataset = new vis.DataSet([]);
+  let networkInstance = null;
+  let restoreThemeAfterPrint = null;
+
+  let patientSessionData = {
+    patientId: "",
+    sessionDate: new Date().toISOString().split('T')[0],
+    therapist: "",
+    notes: "",
+    activeModelTitle: "Własny model"
+  };
+
+  /* =====================================================
+     MOTYW
+     ===================================================== */
+  const ICON_MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  const ICON_SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+
+  function applyTheme(theme, persist = true) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (persist) { try { localStorage.setItem('cbt-theme', theme); } catch (e) {} }
+    const icon = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon) icon.innerHTML = theme === 'dark' ? ICON_SUN : ICON_MOON;
+    if (label) label.textContent = theme === 'dark' ? 'Jasny' : 'Ciemny';
+    restyleAll();
+  }
+
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    applyTheme(cur === 'dark' ? 'light' : 'dark');
+  }
+
+  function nodeObject(id, type, labelRaw, patientText, x, y) {
+    const c = palette(type);
+    const ink = css('--ink');
+    const obj = {
+      id,
+      cbtType: type,
+      labelRaw,
+      patientText,
+      label: formatNodeLabel(labelRaw, patientText),
+      color: {
+        background: c.bg,
+        border: c.border,
+        highlight: { background: c.bg, border: ink },
+        hover: { background: c.bg, border: ink }
+      },
+      font: { color: c.text }
+    };
+    if (x !== undefined && x !== null) obj.x = x;
+    if (y !== undefined && y !== null) obj.y = y;
+    return obj;
+  }
+
+  function edgeObject(from, to, label, rel) {
+    const s = edgeStyle(rel);
+    return {
+      from, to, label, rel,
+      color: { color: s.color, highlight: s.color, hover: s.color },
+      dashes: s.dashes,
+      arrows: s.arrows
+    };
+  }
+
+  function restyleAll() {
+    if (!networkInstance) return;
+    networkInstance.setOptions({
+      edges: { font: { color: css('--ink-2'), background: css('--canvas') } }
+    });
+    nodesDataset.update(nodesDataset.get().map(n => {
+      const o = nodeObject(n.id, n.cbtType || 'thought', n.labelRaw || '', n.patientText || '', n.x, n.y);
+      if (!n.labelRaw) { delete o.label; delete o.labelRaw; }
+      return o;
+    }));
+    edgesDataset.update(edgesDataset.get().map(e => {
+      const rel = inferRel(e);
+      const s = edgeStyle(rel);
+      return {
+        id: e.id, rel,
+        color: { color: s.color, highlight: s.color, hover: s.color },
+        dashes: s.dashes,
+        arrows: s.arrows
+      };
+    }));
+  }
+
+  /* =====================================================
+     START
+     ===================================================== */
+  window.onload = function () {
+    initNetwork();
+    applyTheme(document.documentElement.getAttribute('data-theme') || 'light', false);
+    document.getElementById('session-date').value = patientSessionData.sessionDate;
+    
+    // Wczytanie szablonów modeli z pliku modele.json
+    loadModelsFromJSON();
+  };
+
+  function initNetwork() {
+    const container = document.getElementById('network-container');
+    const data = { nodes: nodesDataset, edges: edgesDataset };
+
+    const options = {
+      nodes: {
+        shape: 'box',
+        margin: 14,
+        borderWidth: 1.5,
+        borderWidthSelected: 3,
+        shapeProperties: { borderRadius: 10 },
+        shadow: false,
+        font: { multi: 'html', face: FONT_FACE, size: 15, bold: { face: FONT_FACE, size: 15, mod: 'bold' }, ital: { face: FONT_FACE, size: 14, mod: 'italic' } },
+        widthConstraint: { maximum: 210 }
+      },
+      edges: {
+        font: { size: 12, face: FONT_FACE, align: 'middle', color: css('--ink-2'), background: css('--canvas'), strokeWidth: 0 },
+        smooth: { type: 'cubicBezier', roundness: 0.4 },
+        width: 2,
+        selectionWidth: 1.5,
+        hoverWidth: 1.5
+      },
+      physics: {
+        enabled: false // Na stałe wyłączony ruch/fizyka
+      },
+      interaction: { hover: true, selectConnectedEdges: false, tooltipDelay: 300 }
+    };
+
+    networkInstance = new vis.Network(container, data, options);
+
+    networkInstance.on("doubleClick", function (params) {
+      if (params.nodes.length > 0) openEditModal(params.nodes[0]);
+    });
+
+    nodesDataset.on('*', updateSelectDropdowns);
+  }
+
+  function formatNodeLabel(mainLabel, patientText) {
+    let formatted = `<b>${escLabel(mainLabel)}</b>`;
+    if (patientText && patientText.trim() !== "") {
+      formatted += `\n<i>„${escLabel(patientText.trim())}”</i>`;
+    }
+    return formatted;
+  }
+
+  /* =====================================================
+     DODAWANIE ELEMENTÓW I POŁĄCZEŃ
+     ===================================================== */
+  function addNewNodeFromSidebar() {
+    const type = document.getElementById('node-type-select').value;
+    const label = document.getElementById('node-label-input').value.trim();
+    const patient = document.getElementById('node-patient-input').value.trim();
+
+    if (!label) {
+      showToast("Wpisz nazwę elementu.", "warn");
+      return;
+    }
+
+    nodesDataset.add(nodeObject(Date.now(), type, label, patient));
+    document.getElementById('node-label-input').value = "";
+    document.getElementById('node-patient-input').value = "";
+    showToast("Dodano element do modelu.");
+  }
+
+  function addNewEdgeFromSidebar() {
+    const from = document.getElementById('edge-from-select').value;
+    const to = document.getElementById('edge-to-select').value;
+    const relation = document.getElementById('edge-relation-select').value;
+
+    if (!from || !to || from === to) {
+      showToast("Wybierz dwa różne elementy.", "warn");
+      return;
+    }
+
+    edgesDataset.add(edgeObject(parseInt(from) || from, parseInt(to) || to, relation, relation));
+    showToast("Utworzono połączenie.");
+  }
+
+  function updateSelectDropdowns() {
+    const fromSel = document.getElementById('edge-from-select');
+    const toSel = document.getElementById('edge-to-select');
+    if (!fromSel || !toSel) return;
+
+    const prevFrom = fromSel.value, prevTo = toSel.value;
+    fromSel.innerHTML = "";
+    toSel.innerHTML = "";
+
+    const allNodes = nodesDataset.get();
+    const n = allNodes.length;
+    const word = n === 1 ? 'element' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'elementy' : 'elementów';
+    document.getElementById('node-count-badge').innerText = `${n} ${word}`;
+    document.getElementById('empty-hint').classList.toggle('hidden', n > 0);
+
+    allNodes.forEach(node => {
+      const title = node.labelRaw || node.label;
+      fromSel.add(new Option(title, node.id));
+      toSel.add(new Option(title, node.id));
+    });
+
+    if (prevFrom && [...fromSel.options].some(o => o.value === prevFrom)) fromSel.value = prevFrom;
+    if (prevTo && [...toSel.options].some(o => o.value === prevTo)) toSel.value = prevTo;
+  }
+
+  /* =====================================================
+     EDYCJA I USUWANIE
+     ===================================================== */
+  function openEditModal(nodeId) {
+    const node = nodesDataset.get(nodeId);
+    if (!node) return;
+
+    document.getElementById('edit-node-id').value = node.id;
+    document.getElementById('edit-node-type').value = node.cbtType || 'thought';
+    document.getElementById('edit-node-label').value = node.labelRaw || '';
+    document.getElementById('edit-node-patient').value = node.patientText || '';
+
+    document.getElementById('editNodeModal').classList.remove('hidden');
+    document.getElementById('edit-node-label').focus();
+  }
+
+  function closeEditModal() {
+    document.getElementById('editNodeModal').classList.add('hidden');
+  }
+
+  function saveNodeEdit() {
+    const rawId = document.getElementById('edit-node-id').value;
+    const id = parseInt(rawId) || rawId;
+    const type = document.getElementById('edit-node-type').value;
+    const label = document.getElementById('edit-node-label').value.trim();
+    const patient = document.getElementById('edit-node-patient').value.trim();
+
+    if (!label) { showToast("Nazwa elementu nie może być pusta.", "warn"); return; }
+
+    const existingNode = nodesDataset.get(id);
+    nodesDataset.update(nodeObject(id, type, label, patient, existingNode.x, existingNode.y));
+    closeEditModal();
+    showToast("Zaktualizowano element.");
+  }
+
+  function removeNodeWithEdges(id) {
+    const connected = networkInstance.getConnectedEdges(id);
+    if (connected.length) edgesDataset.remove(connected);
+    nodesDataset.remove(id);
+  }
+
+  function deleteCurrentEditingNode() {
+    const rawId = document.getElementById('edit-node-id').value;
+    removeNodeWithEdges(parseInt(rawId) || rawId);
+    closeEditModal();
+    showToast("Usunięto element.");
+  }
+
+  /* =====================================================
+     WCZYTYWANIE SZABLONU
+     ===================================================== */
+  function loadModelIntoCanvas(model) {
+    nodesDataset.clear();
+    edgesDataset.clear();
+
+    patientSessionData.activeModelTitle = model.title;
+    document.getElementById('current-model-display').innerText = `Model: ${model.title}`;
+    document.getElementById('print-model-title').innerText = `Model: ${model.title}`;
+
+    model.nodes.forEach(n => {
+      nodesDataset.add(nodeObject(n.id, n.type, n.label, n.patientText || '', n.x, n.y));
+    });
+    model.edges.forEach(e => {
+      edgesDataset.add(edgeObject(e.from, e.to, e.label, e.type || 'NASILA'));
+    });
+
+    setTimeout(() => { networkInstance.fit(); }, 250);
+    showToast(`Wczytano model: ${model.title}`);
+  }
+
+  /* =====================================================
+     KATALOG SZABLONÓW I FILTROWANIE
+     ===================================================== */
+  function openModelCatalogModal() {
+    const searchInput = document.getElementById('model-search-input');
+    if (searchInput) {
+      searchInput.value = "";
+    }
+    renderModelCatalogModalGrid();
+    document.getElementById('modelCatalogModal').classList.remove('hidden');
+    if (searchInput) {
+      setTimeout(() => searchInput.focus(), 100);
+    }
+  }
+
+  function closeModelCatalogModal() {
+    document.getElementById('modelCatalogModal').classList.add('hidden');
+  }
+
+  function filterModelCatalog() {
+    const query = document.getElementById('model-search-input').value;
+    renderModelCatalogModalGrid(query);
+  }
+
+  function renderModelCatalogModalGrid(filterText = '') {
+    const container = document.getElementById('models-grid-container');
+    container.innerHTML = "";
+
+    const term = filterText.toLowerCase().trim();
+    const filtered = modelDatabase.filter(m => {
+      const title = (m.title || '').toLowerCase();
+      const category = (m.category || '').toLowerCase();
+      const desc = (m.description || '').toLowerCase();
+      return title.includes(term) || category.includes(term) || desc.includes(term);
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--ink-2);">
+          Brak szablonów spełniających kryteria wyszukiwania.
+        </div>
+      `;
+      return;
+    }
+
+    filtered.forEach(m => {
+      const card = document.createElement('div');
+      card.className = "model-card";
+      card.innerHTML = `
+        <div>
+          <div class="model-meta">
+            <span class="tag">${esc(m.category)}</span>
+            <span>${m.nodes.length} elementów</span>
+          </div>
+          <h4>${esc(m.title)}</h4>
+          <p>${esc(m.description)}</p>
+        </div>
+        <button class="btn btn-block" data-model-id="${esc(m.id)}">Wczytaj szablon</button>
+      `;
+      card.querySelector('button').addEventListener('click', () => selectModelFromCatalog(m.id));
+      container.appendChild(card);
+    });
+  }
+
+  function selectModelFromCatalog(modelId) {
+    const model = modelDatabase.find(m => m.id === modelId);
+    if (model) {
+      loadModelIntoCanvas(model);
+      closeModelCatalogModal();
+    }
+  }
+
+  /* =====================================================
+     TWORZENIE I EKSPORT NOWEGO SZABLONU DO JSON
+     ===================================================== */
+  function openCreateModelModal() {
+    if (nodesDataset.length === 0) {
+      showToast("Twój model jest pusty. Dodaj najpierw elementy na płótno.", "warn");
+      return;
+    }
+    document.getElementById('new-model-title').value = "";
+    document.getElementById('new-model-id').value = "";
+    document.getElementById('new-model-category').value = "Ogólne";
+    document.getElementById('new-model-desc').value = "";
+    document.getElementById('json-output-container').classList.add('hidden');
+    document.getElementById('btn-copy-json').classList.add('hidden');
+    document.getElementById('btn-save-model').classList.remove('hidden');
+
+    document.getElementById('createModelModal').classList.remove('hidden');
+    document.getElementById('new-model-title').focus();
+  }
+
+  function closeCreateModelModal() {
+    document.getElementById('createModelModal').classList.add('hidden');
+  }
+
+  function saveNewModelTemplate() {
+    const title = document.getElementById('new-model-title').value.trim();
+    if (!title) {
+      showToast("Wprowadź tytuł modelu.", "warn");
+      return;
+    }
+
+    let rawId = document.getElementById('new-model-id').value.trim();
+    if (!rawId) {
+      rawId = title.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now().toString().slice(-4);
+    }
+    const category = document.getElementById('new-model-category').value.trim() || "Inne";
+    const description = document.getElementById('new-model-desc').value.trim() || "";
+
+    // Pobranie dokładnych pozycji (x, y) z płótna
+    const currentPositions = networkInstance ? networkInstance.getPositions() : {};
+
+    const modelNodes = nodesDataset.get().map(n => {
+      const pos = currentPositions[n.id] || { x: n.x || 0, y: n.y || 0 };
+      return {
+        id: n.id,
+        type: n.cbtType || 'thought',
+        label: n.labelRaw || n.label,
+        patientText: n.patientText || "",
+        x: Math.round(pos.x),
+        y: Math.round(pos.y)
+      };
+    });
+
+    const modelEdges = edgesDataset.get().map(e => ({
+      from: e.from,
+      to: e.to,
+      label: e.label || "",
+      type: inferRel(e)
+    }));
+
+    const newModelObject = {
+      id: rawId,
+      title: title,
+      category: category,
+      description: description,
+      nodes: modelNodes,
+      edges: modelEdges
+    };
+
+    // Dodanie do lokalnej bazy szablonów
+    const idx = modelDatabase.findIndex(m => m.id === rawId);
+    if (idx >= 0) {
+      modelDatabase[idx] = newModelObject;
+    } else {
+      modelDatabase.push(newModelObject);
+    }
+    renderModelCatalogModalGrid();
+
+    // Pokazanie gotowego kodu JSON z pozycjami
+    const jsonString = JSON.stringify(newModelObject, null, 2);
+    const outputArea = document.getElementById('generated-json-output');
+    outputArea.value = jsonString;
+
+    document.getElementById('json-output-container').classList.remove('hidden');
+    document.getElementById('btn-copy-json').classList.remove('hidden');
+
+    patientSessionData.activeModelTitle = title;
+    document.getElementById('current-model-display').innerText = `Model: ${title}`;
+    document.getElementById('print-model-title').innerText = `Model: ${title}`;
+
+    showToast("Wygenerowano JSON z pozycjami elementów!");
+  }
+
+  function copyGeneratedJSON() {
+    const outputArea = document.getElementById('generated-json-output');
+    if (!outputArea.value) return;
+
+    navigator.clipboard.writeText(outputArea.value).then(() => {
+      showToast("Skopiowano kod JSON do schowka!");
+    }).catch(err => {
+      outputArea.select();
+      document.execCommand('copy');
+      showToast("Skopiowano kod JSON do schowka!");
+    });
+  }
+
+  /* =====================================================
+     DANE PACJENTA
+     ===================================================== */
+  function updatePatientMeta() {
+    patientSessionData.patientId = document.getElementById('patient-id').value;
+    patientSessionData.sessionDate = document.getElementById('session-date').value;
+    patientSessionData.therapist = document.getElementById('therapist-name').value;
+    patientSessionData.notes = document.getElementById('clinical-notes').value;
+
+    document.getElementById('print-patient-id').innerText = patientSessionData.patientId || '-';
+    document.getElementById('print-date').innerText = patientSessionData.sessionDate || '-';
+    document.getElementById('print-therapist').innerText = patientSessionData.therapist || '-';
+    document.getElementById('print-clinical-notes').innerText = patientSessionData.notes || '-';
+  }
+
+  /* =====================================================
+     EKSPORT / IMPORT
+     ===================================================== */
+  function downloadJSON(obj, fileName) {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
+    const a = document.createElement('a');
+    a.setAttribute("href", dataStr);
+    a.setAttribute("download", fileName);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function exportModelsJSON() {
+    downloadJSON(modelDatabase, "modele.json");
+    showToast("Pobrano plik modele.json");
+  }
+
+  function importModelsJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (Array.isArray(imported)) {
+          modelDatabase = imported;
+          renderModelCatalogModalGrid();
+          showToast("Zaktualizowano bazę szablonów.");
+        } else {
+          showToast("Nieprawidłowy format pliku modele.json", "warn");
+        }
+      } catch (err) {
+        showToast("Nie udało się odczytać pliku JSON", "warn");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
+  function exportSession() {
+    updatePatientMeta();
+    const currentPositions = networkInstance ? networkInstance.getPositions() : {};
+    const nodesWithPositions = nodesDataset.get().map(n => {
+      const pos = currentPositions[n.id] || { x: n.x || 0, y: n.y || 0 };
+      return {
+        ...n,
+        x: Math.round(pos.x),
+        y: Math.round(pos.y)
+      };
+    });
+
+    const session = {
+      metadata: patientSessionData,
+      nodes: nodesWithPositions,
+      edges: edgesDataset.get()
+    };
+    downloadJSON(session, `CBT_Sesja_${patientSessionData.patientId || 'Pacjent'}_${patientSessionData.sessionDate}.json`);
+    showToast("Wyeksportowano sesję pacjenta.");
+  }
+
+  function importSession(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        const session = JSON.parse(e.target.result);
+        if (session.metadata) {
+          document.getElementById('patient-id').value = session.metadata.patientId || '';
+          document.getElementById('session-date').value = session.metadata.sessionDate || '';
+          document.getElementById('therapist-name').value = session.metadata.therapist || '';
+          document.getElementById('clinical-notes').value = session.metadata.notes || '';
+          updatePatientMeta();
+          if (session.metadata.activeModelTitle) {
+            document.getElementById('current-model-display').innerText = `Model: ${session.metadata.activeModelTitle}`;
+            document.getElementById('print-model-title').innerText = `Model: ${session.metadata.activeModelTitle}`;
+          }
+        }
+        if (session.nodes && session.edges) {
+          nodesDataset.clear();
+          edgesDataset.clear();
+          nodesDataset.add(session.nodes.map(n => nodeObject(n.id, n.cbtType || n.type || 'thought', n.labelRaw || n.label, n.patientText || '', n.x, n.y)));
+          edgesDataset.add(session.edges);
+          restyleAll();
+          setTimeout(() => networkInstance.fit(), 250);
+          showToast("Wczytano sesję pacjenta.");
+        }
+      } catch (err) {
+        showToast("Nie udało się odczytać pliku sesji", "warn");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
+  /* =====================================================
+     STEROWANIE PŁÓTNEM
+     ===================================================== */
+  function resetLayout() { networkInstance.fit({ animation: { duration: 300 } }); }
+
+  function clearCanvas() {
+    nodesDataset.clear();
+    edgesDataset.clear();
+    showToast("Wyczyszczono obszar roboczy.");
+  }
+
+  /* =====================================================
+     DRUK – zawsze w jasnym motywie
+     ===================================================== */
+  function printReport() {
+    updatePatientMeta();
+    document.getElementById('file-menu').open = false;
+    const cur = document.documentElement.getAttribute('data-theme');
+    if (cur === 'dark') {
+      restoreThemeAfterPrint = 'dark';
+      applyTheme('light', false);
+    }
+    setTimeout(() => { networkInstance.fit(); window.print(); }, 400);
+  }
+  window.addEventListener('afterprint', function () {
+    if (restoreThemeAfterPrint) {
+      applyTheme(restoreThemeAfterPrint, false);
+      restoreThemeAfterPrint = null;
+    }
+  });
+
+  /* =====================================================
+     POWIADOMIENIA
+     ===================================================== */
+  let toastTimer = null;
+  function showToast(message, kind) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-msg').innerText = message;
+    document.getElementById('toast-dot').classList.toggle('warn', kind === 'warn');
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  /* =====================================================
+     KLAWIATURA I MENU
+     ===================================================== */
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      closeEditModal();
+      closeModelCatalogModal();
+      closeCreateModelModal();
+      document.getElementById('file-menu').open = false;
+      return;
+    }
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    if (e.key === 'Delete' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) {
+      const selected = networkInstance.getSelectedNodes();
+      if (selected.length > 0) {
+        removeNodeWithEdges(selected[0]);
+        showToast("Usunięto zaznaczony element.");
+      }
+    }
+  });
+
+  // Zamykanie menu „Plik” po wyborze akcji lub kliknięciu poza nim
+  document.addEventListener('click', function (e) {
+    const menu = document.getElementById('file-menu');
+    if (!menu.open) return;
+    if (!menu.contains(e.target) || e.target.closest('button.menu-item')) menu.open = false;
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target.type === 'file') document.getElementById('file-menu').open = false;
+  });
+
+  // Zamykanie okien po kliknięciu w tło
+  ['editNodeModal', 'modelCatalogModal', 'createModelModal'].forEach(id => {
+    document.getElementById(id).addEventListener('mousedown', function (e) {
+      if (e.target === this) this.classList.add('hidden');
+    });
+  });
+</script>
+</body>
+</html>
