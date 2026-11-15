@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model ABC - Terapia Poznawczo-Behawioralna</title>
+    <link rel="shortcut icon" type="image/png" href="logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .print-w-full { width: 100% !important; max-width: none !important; }
+            .print-shadow-none { box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+            .print-m-0 { margin: 0 !important; padding: 0 !important; }
+            .print-break-inside-avoid { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-900 pb-10">
+
+    <header class="bg-indigo-900 text-white p-4 shadow-md no-print">
+        <div class="container mx-auto flex justify-between items-center max-w-6xl">
+            <h1 class="text-xl font-black uppercase tracking-tight">Model <span class="text-indigo-400">ABC</span></h1>
+            <button onclick="window.print()" class="text-xs bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded font-bold uppercase transition shadow">
+                Drukuj / Zapisz PDF
+            </button>
+        </div>
+    </header>
+
+    <div class="container mx-auto py-6 px-4 max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <aside class="lg:col-span-5 space-y-4 no-print h-fit">
+            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Uzupełnij dzienniczek</h2>
+                
+                <div class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-blue-600 mb-1">A - Aktywator (Sytuacja)</label>
+                        <p class="text-[10px] text-slate-500 mb-1 italic">Co się wydarzyło? Gdzie byłeś/aś?</p>
+                        <textarea id="input-a" rows="2" class="w-full p-2 text-sm border rounded bg-slate-50 focus:ring-2 ring-blue-200 outline-none transition-all" placeholder="np. Szef poprosił mnie o rozmowę..." oninput="updateView()"></textarea>
+                    </div>
+
+                    <div class="pl-2 border-l-2 border-slate-300">
+                        <label class="block text-xs font-bold uppercase text-purple-600 mb-1">B - Przekonania (Myśli)</label>
+                        <p class="text-[10px] text-slate-500 mb-1 italic">Co przemknęło Ci przez głowę?</p>
+                        <textarea id="input-b" rows="2" class="w-full p-2 text-sm border rounded bg-slate-50 focus:ring-2 ring-purple-200 outline-none transition-all" placeholder="np. Na pewno chce mnie zwolnić." oninput="updateView()"></textarea>
+                    </div>
+
+                    <div class="pl-2 border-l-2 border-slate-300 space-y-3">
+                        <label class="block text-xs font-bold uppercase text-red-600 mb-1">C - Konsekwencje</label>
+                        
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Emocje</p>
+                            <textarea id="input-c-emo" rows="1" class="w-full p-2 text-sm border rounded bg-red-50 focus:ring-2 ring-red-200 outline-none transition-all" placeholder="np. Lęk (8/10), smutek" oninput="updateView()"></textarea>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Objawy z ciała</p>
+                            <textarea id="input-c-body" rows="1" class="w-full p-2 text-sm border rounded bg-orange-50 focus:ring-2 ring-orange-200 outline-none transition-all" placeholder="np. Ścisk w żołądku, napięcie barków" oninput="updateView()"></textarea>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Zachowanie</p>
+                            <textarea id="input-c-beh" rows="1" class="w-full p-2 text-sm border rounded bg-emerald-50 focus:ring-2 ring-emerald-200 outline-none transition-all" placeholder="np. Unikanie kontaktu wzrokowego, milczenie" oninput="updateView()"></textarea>
+                        </div>
+                    </div>
+
+                <button onclick="clearForm()" class="w-full mt-4 text-xs text-slate-500 font-bold uppercase hover:text-red-600 border border-slate-300 rounded py-2 bg-white transition-all">
+                    Wyczyść formularz
+                </button>
+            </div>
+        </aside>
+
+        <main class="lg:col-span-7 print-w-full">
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-slate-200 print-shadow-none h-full flex flex-col">
+                <h2 class="text-center text-lg font-black text-slate-800 uppercase tracking-widest mb-6 border-b pb-3">Moja Analiza ABC</h2>
+                
+                <div class="flex-1 flex flex-col justify-start space-y-2">
+                    
+                    <div class="relative bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg print-break-inside-avoid shadow-sm">
+                        <div class="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md">A</div>
+                        <h3 class="font-bold text-blue-800 text-xs uppercase mb-1 ml-6 tracking-wide">Sytuacja (Aktywator)</h3>
+                        <p id="output-a" class="text-slate-700 whitespace-pre-wrap ml-6 text-sm italic min-h-[1.5rem]">Brak wpisu...</p>
+                    </div>
+
+                    <div class="flex justify-center text-slate-400 py-1 print-break-inside-avoid">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                    </div>
+
+                    <div class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-4 sm:p-6 relative print-break-inside-avoid">
+                        <p class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-[10px] font-black uppercase text-slate-400 tracking-widest border border-slate-200 rounded-full">Wzajemne Wzmacnianie</p>
+                        
+                        <div class="relative bg-purple-50 border-l-4 border-purple-500 p-4 rounded-r-lg shadow-sm">
+                            <div class="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md">B</div>
+                            <h3 class="font-bold text-purple-800 text-xs uppercase mb-1 ml-6 tracking-wide">Myśli (Przekonania)</h3>
+                            <p id="output-b" class="text-slate-800 whitespace-pre-wrap ml-6 text-sm font-medium min-h-[1.5rem]">Brak wpisu...</p>
+                        </div>
+
+                        <div class="flex justify-center items-center py-3 text-slate-500 gap-2">
+                            <svg class="w-6 h-6 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                            <svg class="w-8 h-8 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                        </div>
+
+                        <div class="relative bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+                            <div class="absolute -left-4 top-4 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md z-10">C</div>
+                            <h3 class="font-bold text-red-800 text-xs uppercase mb-3 ml-6 tracking-wide border-b pb-1">Konsekwencje</h3>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 ml-6">
+                                <div class="bg-red-50 p-2 rounded border border-red-100">
+                                    <p class="text-[10px] font-bold text-red-600 uppercase mb-1">Emocje</p>
+                                    <p id="output-c-emo" class="text-xs text-slate-700 whitespace-pre-wrap min-h-[1rem]">Brak wpisu...</p>
+                                </div>
+                                <div class="bg-orange-50 p-2 rounded border border-orange-100">
+                                    <p class="text-[10px] font-bold text-orange-600 uppercase mb-1">Ciało</p>
+                                    <p id="output-c-body" class="text-xs text-slate-700 whitespace-pre-wrap min-h-[1rem]">Brak wpisu...</p>
+                                </div>
+                                <div class="bg-emerald-50 p-2 rounded border border-emerald-100">
+                                    <p class="text-[10px] font-bold text-emerald-600 uppercase mb-1">Zachowanie</p>
+                                    <p id="output-c-beh" class="text-xs text-slate-700 whitespace-pre-wrap min-h-[1rem]">Brak wpisu...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-center text-[10px] text-slate-400 mt-6 no-print uppercase tracking-wider">Wypełnij pola po lewej stronie, aby wygenerować model</p>
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        function updateView() {
+            const fields = ['a', 'b', 'c-emo', 'c-body', 'c-beh', 'd', 'e'];
+            
+            fields.forEach(field => {
+                const val = document.getElementById(`input-${field}`).value;
+                document.getElementById(`output-${field}`).innerText = val || "Brak wpisu...";
+            });
+        }
+
+        function clearForm() {
+            if(confirm("Czy na pewno chcesz wyczyścić wszystkie pola?")) {
+                const fields = ['a', 'b', 'c-emo', 'c-body', 'c-beh', 'd', 'e'];
+                fields.forEach(field => {
+                    document.getElementById(`input-${field}`).value = '';
+                });
+                updateView();
+            }
+        }
+    </script>
+</body>
+</html>
