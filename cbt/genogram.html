@@ -8,126 +8,202 @@
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #network-container { width: 100%; height: 600px; background: #fdfdfd; border-radius: 12px; border: 2px solid #cbd5e1; }
-        .sidebar-scroll { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 10px; }
+        /* Elastyczne dopasowanie do wysokości ekranu (laptopy, Mac, monitory) */
+        @media (min-width: 1024px) {
+            body {
+                height: 100dvh;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .app-wrapper {
+                flex: 1;
+                min-height: 0;
+                display: flex;
+            }
+            .app-grid {
+                flex: 1;
+                min-height: 0;
+                height: 100%;
+            }
+            .sidebar-scroll {
+                height: 100%;
+                overflow-y: auto;
+                padding-right: 6px;
+            }
+            main {
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+            }
+            .canvas-card {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+            }
+            #network-container {
+                flex: 1;
+                min-height: 300px;
+                height: auto !important;
+            }
+        }
+
+        /* Domyślna wysokość dla urządzeń mobilnych / mniejszych okien */
+        #network-container { 
+            width: 100%; 
+            height: 55vh; 
+            min-height: 380px;
+            background: #fdfdfd; 
+            border-radius: 10px; 
+            border: 2px solid #cbd5e1; 
+        }
+
+        /* Estetyczny pasek przewijania dla panelu bocznego na małych laptopach */
+        .sidebar-scroll::-webkit-scrollbar { width: 5px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
         @media print {
             @page { size: landscape; margin: 0.5cm; }
             header, aside, .no-print, button, label, input, select, textarea, .range-container { display: none !important; }
-            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            main { width: 100% !important; grid-column: span 12 / span 12 !important; margin: 0 !important; padding: 0 !important; }
-            
-            #network-container { 
-                border: none !important; height: 95vh !important; width: 100% !important;
-                position: absolute; top: 0; left: 0;
+            body { 
+                background: white !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
             }
-            .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .app-wrapper, .app-grid, main, .canvas-card {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            #network-container { 
+                border: none !important; 
+                height: 95vh !important; 
+                width: 100% !important;
+                position: absolute; 
+                top: 0; 
+                left: 0;
+            }
             .print\:shadow-none { box-shadow: none !important; border: none !important; }
         }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900">
 
-    <header class="bg-slate-900 text-white p-4 shadow-xl border-b-4 border-indigo-600 no-print">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-black italic uppercase tracking-tighter">GENOGRAM <span class="text-indigo-400">MODEL SYSTEMOWY</span></h1>
+    <header class="bg-slate-900 text-white px-4 py-2.5 shadow-lg border-b-4 border-indigo-600 no-print shrink-0">
+        <div class="max-w-[1600px] mx-auto flex justify-between items-center">
+            <h1 class="text-lg lg:text-xl font-black italic uppercase tracking-tighter">GENOGRAM <span class="text-indigo-400">MODEL SYSTEMOWY</span></h1>
             <div class="flex gap-2">
-                <button onclick="window.print()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded font-bold uppercase transition">Drukuj Raport</button>
-                <button onclick="exportSession()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold uppercase transition">Eksportuj</button>
-                <label class="text-[10px] bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded font-bold cursor-pointer uppercase transition">
+                <button onclick="window.print()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded font-bold uppercase transition">Drukuj Raport</button>
+                <button onclick="exportSession()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded font-bold uppercase transition">Eksportuj</button>
+                <label class="text-[10px] bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded font-bold cursor-pointer uppercase transition">
                     Importuj <input type="file" id="importFile" class="hidden" accept=".json" onchange="importSession(event)">
                 </label>
             </div>
         </div>
     </header>
 
-    <div class="container mx-auto py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 px-4">
-        
-        <aside class="xl:col-span-4 space-y-4 sidebar-scroll no-print">
-            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
-                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">1. Dodaj członka rodziny</h2>
-                
-                <div class="space-y-4 italic">
-                    <div>
-                        <label class="text-[10px] font-bold uppercase text-slate-400">Imię / Wiek / Rola:</label>
-                        <textarea id="node-label" rows="2" placeholder="np. Jan (52)&#10;Ojciec" class="w-full p-2 border rounded bg-slate-50 outline-none focus:ring-2 ring-indigo-200 resize-y"></textarea>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400">Płeć (Kształt):</label>
-                            <select id="node-gender" class="w-full p-2 text-xs border rounded bg-white">
-                                <option value="male">Mężczyzna (Kwadrat)</option>
-                                <option value="female">Kobieta (Koło)</option>
-                                <option value="other">Inna / Nieznana (Romb)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400">Status w systemie:</label>
-                            <select id="node-status" class="w-full p-2 text-xs border rounded bg-white font-bold text-slate-700">
-                                <option value="standard">Standardowy członek</option>
-                                <option value="ip">Pacjent Identyfikowany (IP)</option>
-                                <option value="deceased">Osoba zmarła</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button onclick="addFamilyMember()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg hover:bg-black transition-all shadow-lg uppercase text-xs">Dodaj Osobę</button>
+    <div class="app-wrapper w-full">
+        <div class="app-grid max-w-[1600px] w-full mx-auto py-3 px-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <aside class="lg:col-span-4 xl:col-span-3 space-y-3 sidebar-scroll no-print">
+                <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200">
+                    <h2 class="text-xs font-black text-slate-500 uppercase mb-3 tracking-widest">1. Dodaj członka rodziny</h2>
                     
-                    <button onclick="toggleQuestionsModal()" class="w-full mt-2 bg-indigo-50 text-indigo-700 border border-indigo-200 font-black py-2 rounded-lg hover:bg-indigo-100 transition-all uppercase text-[10px]">Pytania Systemowe / Hipotezy</button>
+                    <div class="space-y-3 italic">
+                        <div>
+                            <label class="text-[10px] font-bold uppercase text-slate-400">Imię / Wiek / Rola:</label>
+                            <textarea id="node-label" rows="2" placeholder="np. Jan (52)&#10;Ojciec" class="w-full p-2 text-xs border rounded bg-slate-50 outline-none focus:ring-2 ring-indigo-200 resize-y"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[10px] font-bold uppercase text-slate-400">Płeć (Kształt):</label>
+                                <select id="node-gender" class="w-full p-1.5 text-xs border rounded bg-white">
+                                    <option value="male">Mężczyzna (Kwadrat)</option>
+                                    <option value="female">Kobieta (Koło)</option>
+                                    <option value="other">Inna / Nieznana (Romb)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold uppercase text-slate-400">Status w systemie:</label>
+                                <select id="node-status" class="w-full p-1.5 text-xs border rounded bg-white font-bold text-slate-700">
+                                    <option value="standard">Standardowy członek</option>
+                                    <option value="ip">Pacjent Identyfikowany (IP)</option>
+                                    <option value="deceased">Osoba zmarła</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button onclick="addFamilyMember()" class="w-full bg-slate-900 text-white font-black py-2.5 rounded-lg hover:bg-black transition-all shadow uppercase text-xs">Dodaj Osobę</button>
+                        
+                        <button onclick="toggleQuestionsModal()" class="w-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-black py-2 rounded-lg hover:bg-indigo-100 transition-all uppercase text-[10px]">Pytania Systemowe / Hipotezy</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
-                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">2. Określ relację</h2>
-                <div class="space-y-3">
-                    <select id="edge-from" class="w-full p-2 text-xs border rounded"></select>
-                    <select id="edge-to" class="w-full p-2 text-xs border rounded"></select>
-                    <select id="edge-type" class="w-full p-2 text-xs border rounded font-bold bg-indigo-50">
-                        <optgroup label="Strukturalne">
-                            <option value="marriage">Małżeństwo / Partnerstwo</option>
-                            <option value="divorce">Rozwód / Separacja</option>
-                            <option value="parent-child">Rodzic -> Dziecko (kierunek)</option>
-                        </optgroup>
-                        <optgroup label="Emocjonalne">
-                            <option value="close">Bliska / Silna więź</option>
-                            <option value="enmeshed">Uwikłanie / Zbyt bliska</option>
-                            <option value="conflict">Konfliktowa / Napięta</option>
-                            <option value="cutoff">Zerwana relacja / Odcięcie</option>
-                            <option value="distant">Dystans / Chłodna</option>
-                        </optgroup>
-                    </select>
+                <div class="bg-white p-4 rounded-xl shadow-md border border-slate-200">
+                    <h2 class="text-xs font-black text-slate-500 uppercase mb-3 tracking-widest">2. Określ relację</h2>
+                    <div class="space-y-2.5">
+                        <select id="edge-from" class="w-full p-1.5 text-xs border rounded"></select>
+                        <select id="edge-to" class="w-full p-1.5 text-xs border rounded"></select>
+                        <select id="edge-type" class="w-full p-1.5 text-xs border rounded font-bold bg-indigo-50">
+                            <optgroup label="Strukturalne">
+                                <option value="marriage">Małżeństwo / Partnerstwo</option>
+                                <option value="divorce">Rozwód / Separacja</option>
+                                <option value="parent-child">Rodzic -> Dziecko (kierunek)</option>
+                            </optgroup>
+                            <optgroup label="Emocjonalne">
+                                <option value="close">Bliska / Silna więź</option>
+                                <option value="enmeshed">Uwikłanie / Zbyt bliska</option>
+                                <option value="conflict">Konfliktowa / Napięta</option>
+                                <option value="cutoff">Zerwana relacja / Odcięcie</option>
+                                <option value="distant">Dystans / Chłodna</option>
+                            </optgroup>
+                        </select>
 
-                    <button onclick="addRelationship()" class="w-full bg-indigo-600 text-white font-black py-2 rounded shadow hover:bg-indigo-700 transition uppercase text-[10px]">Utwórz relację</button>
+                        <button onclick="addRelationship()" class="w-full bg-indigo-600 text-white font-black py-2 rounded shadow hover:bg-indigo-700 transition uppercase text-[10px]">Utwórz relację</button>
+                    </div>
                 </div>
-            </div>
-        </aside>
+            </aside>
 
-        <main class="xl:col-span-8 space-y-4">
-            <div class="bg-white p-4 rounded-xl shadow-lg border border-slate-200 print:shadow-none print:border-none">
-                <div id="network-container"></div>
-                
-                <div class="mt-4 p-4 bg-slate-50 rounded-lg border flex flex-wrap gap-4 items-center justify-center print:bg-white text-[10px] uppercase font-bold text-slate-600">
-                    <div class="flex items-center gap-1">
-                        <span class="w-4 h-4 border-2 border-blue-500 bg-blue-100 block"></span> Mężczyzna
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <span class="w-4 h-4 border-2 border-red-500 bg-red-100 rounded-full block"></span> Kobieta
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <span class="w-4 h-4 border-2 border-slate-800 bg-yellow-200 block border-double border-[3px]"></span> Pacjent (IP)
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <span class="w-4 h-4 border-2 border-slate-400 bg-slate-200 block border-dashed"></span> Zmarły
-                    </div>
+            <main class="lg:col-span-8 xl:col-span-9">
+                <div class="canvas-card bg-white p-3 rounded-xl shadow-lg border border-slate-200 print:shadow-none print:border-none">
+                    <div id="network-container"></div>
                     
-                    <button onclick="deleteSelected()" class="text-slate-500 ml-auto hover:text-red-600 border border-slate-300 rounded px-2 py-1 bg-white transition">Usuń zaznaczone</button>
-                    <button onclick="resetAll()" class="text-red-500 hover:text-red-700 transition">Resetuj wszystko</button>
-                    <button onclick="undoLast()" class="text-orange-500 hover:text-orange-700 transition">Cofnij</button>
+                    <div class="mt-2.5 px-3 py-2 bg-slate-50 rounded-lg border flex flex-wrap gap-3 items-center justify-between print:bg-white text-[10px] uppercase font-bold text-slate-600 shrink-0">
+                        <div class="flex flex-wrap gap-3 items-center">
+                            <div class="flex items-center gap-1">
+                                <span class="w-3.5 h-3.5 border-2 border-blue-500 bg-blue-100 block"></span> Mężczyzna
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="w-3.5 h-3.5 border-2 border-red-500 bg-red-100 rounded-full block"></span> Kobieta
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="w-3.5 h-3.5 border-2 border-slate-800 bg-yellow-200 block border-double border-[3px]"></span> Pacjent (IP)
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="w-3.5 h-3.5 border-2 border-slate-400 bg-slate-200 block border-dashed"></span> Zmarły
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-3 items-center ml-auto">
+                            <button onclick="network.fit({animation: true})" class="text-indigo-600 hover:text-indigo-800 border border-indigo-200 rounded px-2 py-1 bg-indigo-50 transition">Dopasuj widok</button>
+                            <button onclick="deleteSelected()" class="text-slate-600 hover:text-red-600 border border-slate-300 rounded px-2 py-1 bg-white transition">Usuń zaznaczone</button>
+                            <button onclick="undoLast()" class="text-orange-500 hover:text-orange-700 transition">Cofnij</button>
+                            <button onclick="resetAll()" class="text-red-500 hover:text-red-700 transition">Resetuj</button>
+                        </div>
+                    </div>
+                    <p class="text-center text-slate-400 text-[11px] mt-1.5 no-print italic shrink-0">Wskazówka: Ułóż węzły ręcznie (np. starsze pokolenia wyżej). Kliknij dwukrotnie węzeł, aby zmienić tekst.</p>
                 </div>
-                <p class="text-center text-slate-400 text-xs mt-2 no-print italic">Wskazówka: Ułóż węzły ręcznie (np. starsze pokolenia wyżej). Kliknij dwukrotnie węzeł, aby zmienić tekst.</p>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <div id="questionsModal" class="fixed inset-0 bg-slate-900/60 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print">
@@ -167,6 +243,7 @@
         const data = { nodes: nodes, edges: edges };
         
         const options = {
+            autoResize: true,
             nodes: {
                 font: { size: 14, face: 'Verdana', color: '#1e293b', multi: 'html' },
                 borderWidth: 2,
@@ -178,7 +255,6 @@
                 smooth: { type: 'continuous', roundness: 0.2 }
             },
             physics: {
-                // Wyłączona fizyka, by ręcznie układać pokolenia (wymóg genogramu)
                 enabled: false 
             },
             interaction: {
@@ -186,6 +262,11 @@
             }
         };
         const network = new vis.Network(container, data, options);
+
+        // Automatyczne przeliczenie obszaru rysowania przy zmianie rozmiaru okna / ekranu
+        window.addEventListener('resize', () => {
+            network.redraw();
+        });
 
         // Edycja tekstu po dwukrotnym kliknięciu
         network.on("doubleClick", function (params) {
@@ -216,14 +297,13 @@
             let borderDashes = false;
             let fontColor = '#1e293b';
 
-            // Płeć określa kształt i domyślne kolory
             if (gender === 'male') {
                 nodeShape = 'box';
-                bgColor = '#dbeafe'; // jasnoniebieski
+                bgColor = '#dbeafe';
                 borderColor = '#3b82f6';
             } else if (gender === 'female') {
                 nodeShape = 'circle';
-                bgColor = '#fee2e2'; // jasnoczerwony
+                bgColor = '#fee2e2';
                 borderColor = '#ef4444';
             } else if (gender === 'other') {
                 nodeShape = 'diamond';
@@ -231,15 +311,14 @@
                 borderColor = '#6b7280';
             }
 
-            // Status modyfikuje wygląd
             if (status === 'ip') {
                 borderWidth = 5;
                 borderColor = '#1e293b';
-                bgColor = '#fef08a'; // żółty dla IP
+                bgColor = '#fef08a';
             } else if (status === 'deceased') {
                 bgColor = '#e2e8f0';
                 borderColor = '#64748b';
-                borderDashes = [5, 5]; // przerywana ramka dla zmarłych
+                borderDashes = [5, 5];
                 fontColor = '#64748b';
             }
 
@@ -277,7 +356,6 @@
             let showArrow = false;
 
             switch(type) {
-                // Strukturalne
                 case 'marriage':
                     edgeColor = '#1e293b';
                     edgeWidth = 2;
@@ -293,29 +371,28 @@
                     edgeWidth = 2;
                     showArrow = true;
                     break;
-                // Emocjonalne
                 case 'close':
-                    edgeColor = '#10b981'; // zielony
+                    edgeColor = '#10b981';
                     edgeWidth = 4;
                     break;
                 case 'enmeshed':
-                    edgeColor = '#8b5cf6'; // fiolet
+                    edgeColor = '#8b5cf6';
                     edgeWidth = 6;
                     break;
                 case 'conflict':
-                    edgeColor = '#ef4444'; // czerwony
+                    edgeColor = '#ef4444';
                     edgeWidth = 3;
                     edgeDashes = [10, 5];
                     edgeLabel = 'Konflikt';
                     break;
                 case 'cutoff':
-                    edgeColor = '#94a3b8'; // szary
+                    edgeColor = '#94a3b8';
                     edgeWidth = 2;
-                    edgeDashes = [2, 6]; // kropkowana
+                    edgeDashes = [2, 6];
                     edgeLabel = 'Zerwana';
                     break;
                 case 'distant':
-                    edgeColor = '#cbd5e1'; // jasnoszary
+                    edgeColor = '#cbd5e1';
                     edgeWidth = 2;
                     edgeLabel = 'Dystans';
                     break;
