@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="cbt.png" />
+    <title>Mapa Regulacji Emocji</title>
+    
+    <style>
+        /* Twoja stylistyka bazowa */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            line-height: 1.6; 
+            margin: 20px; 
+            background-color: #f7f3ec;
+            background-image: radial-gradient(#e9e1d4 0.75px, transparent 0.75px), radial-gradient(#e9e1d4 0.75px, #f7f3ec 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: #1b4332; 
+        }
+        
+        .container { 
+            max-width: 850px; 
+            margin: 0 auto; 
+            background-color: #fffdf9; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 8px 16px rgba(27, 67, 50, 0.08); 
+            border: 1px solid #d8c3a5;
+            margin-bottom: 40px; 
+        }
+
+        .logo-wrapper { text-align: center; margin-bottom: 20px; }
+        .logo-wrapper img { max-height: 80px; width: auto; }
+        
+        h1 { color: #1b4332; text-align: center; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+
+        .intro-text {
+            text-align: center;
+            font-style: italic;
+            color: #2d6a4f;
+            margin-bottom: 30px;
+            padding: 0 15px;
+        }
+
+        /* Stylizacja kroków */
+        .step-container { margin-bottom: 30px; }
+        
+        .step-title {
+            background-color: #e5ede6;
+            color: #1b4332;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            border-left: 5px solid #2d6a4f;
+        }
+
+        .step-content {
+            padding: 20px;
+            border: 1px solid #d8c3a5;
+            border-top: none;
+            background-color: #fffdf9;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .step-content p {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .step-content ul {
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-left: 20px;
+            color: #2d6a4f;
+        }
+
+        textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #d8c3a5; 
+            border-radius: 5px; 
+            box-sizing: border-box; 
+            resize: vertical; 
+            font-family: inherit;
+            background-color: #ffffff;
+            color: #1b4332;
+            min-height: 90px;
+        }
+
+        .action-buttons { text-align: center; margin-top: 30px; }
+        .print-btn { background-color: #52b788; color: white; padding: 12px 25px; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .clear-btn { background-color: #6c757d; color: white; padding: 12px 25px; border: none; border-radius: 25px; font-weight: bold; cursor: pointer; margin-left: 10px; }
+        
+        .print-btn:hover { background-color: #40916c; }
+        .clear-btn:hover { background-color: #5a6268; }
+
+        @media print {
+            .action-buttons, .logo-wrapper { display: none; }
+            .container { box-shadow: none; width: 100%; margin: 0; padding: 0; border: none; }
+            body { background-color: white; background-image: none; }
+            textarea { border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-wrapper">
+        <a href="https://psychodem-lab.github.io/o"><img src="https://psychodem-lab.github.io/o/img/logo.png" alt="Logo"></a>
+    </div>
+
+    <div class="container">
+        <h1>Mapa Regulacji Emocji</h1>
+        <p class="intro-text">
+            Formularz pomoże Ci prześledzić Twoje emocje w stresujących sytuacjach i strategie, które stosujesz, by radzić sobie z emocjami. Wróć do niego po pewnym czasie, by ocenić krótko- i długofalowe konsekwencje wybranych strategii.
+        </p>
+
+        <form id="cbt-emotion-regulation">
+            
+            <div class="step-container">
+                <div class="step-title">1. Opis sytuacji</div>
+                <div class="step-content">
+                    <p>Opisz wszystko jak najdokładniej, podaj konkrety:</p>
+                    <ul>
+                        <li>Co robiłeś(-łaś)?</li>
+                        <li>Co wywołało Twoją reakcję emocjonalną?</li>
+                        <li>Kiedy to się zdarzyło?</li>
+                        <li>Kto był z Tobą?</li>
+                        <li>Gdzie się znajdowałeś(-łaś)?</li>
+                    </ul>
+                    <textarea placeholder="Przykład: Rano o 8:00 stałem sam na przystanku i uciekł mi autobus do pracy, przez co wiedziałem, że spóźnię się na ważne spotkanie."></textarea>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">2. Przeżywane emocje i ich nasilenie</div>
+                <div class="step-content">
+                    <ul>
+                        <li>Opisz przeżywane przez siebie emocje.</li>
+                        <li>Oceń nasilenie każdej emocji (w skali 0–100).</li>
+                    </ul>
+                    <textarea placeholder="Przykład: Lęk (75/100), złość na siebie (60/100)."></textarea>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">3. Zastosowane strategie regulacji</div>
+                <div class="step-content">
+                    <ul>
+                        <li>Wymień zastosowane przez siebie strategie regulacji emocji.</li>
+                        <li>Opisz szczegółowo, w jaki sposób wdrożyłeś(-łaś) każdą z nich.</li>
+                    </ul>
+                    <textarea placeholder="Przykład: Zrobiłem 5 powolnych oddechów, żeby się uspokoić, a potem od razu napisałem krótką wiadomość do szefa, że będę 10 minut później."></textarea>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">4. Krótkofalowe skutki regulacji</div>
+                <div class="step-content">
+                    <ul>
+                        <li>Co się zdarzyło bezpośrednio po zastosowaniu tych strategii?</li>
+                        <li>Jak zmieniły się Twoje emocje? Osłabły czy się nasiliły?</li>
+                        <li>Jak zmieniły się Twoje myśli, doznania fizyczne i zachowania?</li>
+                    </ul>
+                    <textarea placeholder="Przykład: Lęk spadł do 30/100, przestało mi szybko bić serce. Zamiast panikować, spokojnie poczekałem na kolejny autobus."></textarea>
+                </div>
+            </div>
+
+            <div class="step-container">
+                <div class="step-title">5. Długofalowe skutki regulacji</div>
+                <div class="step-content">
+                    <ul>
+                        <li>Czy zastosowanie tych strategii pomogło Ci osiągnąć długoterminowe cele? W jaki sposób?</li>
+                        <li>Jak inaczej możesz sobie poradzić z tymi emocjami w przyszłości?</li>
+                    </ul>
+                    <textarea placeholder="Przykład: Tak, zachowałem profesjonalizm i dobre relacje w pracy. Następnym razem wyjdę z domu 10 minut wcześniej, żeby mieć zapas czasu."></textarea>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button type="button" class="print-btn" onclick="window.print()">🖨️ Drukuj Arkusz</button>
+                <button type="reset" class="clear-btn">🗑️ Wyczyść wszystko</button>
+            </div>
+
+        </form>
+    </div>
+</body>
+</html>
