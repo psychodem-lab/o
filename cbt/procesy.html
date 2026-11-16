@@ -8,60 +8,72 @@
     <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #network-container { width: 100%; height: 600px; background: #fdfdfd; border-radius: 12px; border: 2px solid #cbd5e1; }
-        .sidebar-scroll { max-height: calc(100vh - 120px); overflow-y: auto; padding-right: 10px; }
+        /* Pasek przewijania dla panelu bocznego na mniejszych wysokościach ekranu */
+        .sidebar-scroll::-webkit-scrollbar { width: 5px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        #network-container { 
+            width: 100%; 
+            height: 100%; 
+            min-height: 380px;
+            background: #fdfdfd; 
+            border-radius: 10px; 
+            border: 2px solid #cbd5e1; 
+        }
         
         @media print {
             @page {
                 size: landscape; margin: 0.5cm;
             }
             header, aside, .no-print, button, label, input, select, textarea, .range-container { display: none !important; }
-            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            main { width: 100% !important; grid-column: span 12 / span 12 !important; margin: 0 !important; padding: 0 !important; }
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; overflow: visible !important; height: auto !important; }
+            main { width: 100% !important; margin: 0 !important; padding: 0 !important; height: auto !important; }
             
             #network-container { 
-                border: none !important; height: 95vh !important;
+                border: none !important; 
+                height: 95vh !important;
                 width: 100% !important;
                 position: absolute;
                 top: 0;
                 left: 0;
             }
-            .container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .max-w-screen-2xl { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
             .print\:shadow-none { box-shadow: none !important; border: none !important; }
         }
     </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-900">
+<body class="bg-slate-100 font-sans text-slate-900 flex flex-col min-h-screen lg:h-screen lg:overflow-hidden">
 
-    <header class="bg-slate-900 text-white p-4 shadow-xl border-b-4 border-indigo-600 no-print">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-black italic uppercase tracking-tighter">PBT <span class="text-indigo-400">MODEL SIECIOWY</span></h1>
+    <header class="bg-slate-900 text-white px-4 py-2.5 shadow-md border-b-4 border-indigo-600 no-print shrink-0">
+        <div class="max-w-screen-2xl mx-auto flex justify-between items-center">
+            <h1 class="text-lg font-black italic uppercase tracking-tighter">PBT <span class="text-indigo-400">MODEL SIECIOWY</span></h1>
             <div class="flex gap-2">
-                <button onclick="window.print()" class="text-[10px] bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded font-bold uppercase transition">Drukuj Raport</button>
-                <button onclick="exportSession()" class="text-[10px] bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold uppercase transition">Eksportuj</button>
-                <label class="text-[10px] bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded font-bold cursor-pointer uppercase transition">
+                <button onclick="window.print()" class="text-[11px] bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded font-bold uppercase transition">Drukuj Raport</button>
+                <button onclick="exportSession()" class="text-[11px] bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded font-bold uppercase transition">Eksportuj</button>
+                <label class="text-[11px] bg-indigo-600 hover:bg-indigo-500 px-3 py-1 rounded font-bold cursor-pointer uppercase transition">
                     Importuj <input type="file" id="importFile" class="hidden" accept=".json" onchange="importSession(event)">
                 </label>
             </div>
         </div>
     </header>
 
-    <div class="container mx-auto py-6 grid grid-cols-1 xl:grid-cols-12 gap-6 px-4">
+    <div class="max-w-screen-2xl w-full mx-auto flex-1 lg:overflow-hidden py-3 px-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        <aside class="xl:col-span-4 space-y-4 sidebar-scroll no-print">
-            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
-                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">1. Dodaj proces do sieci</h2>
+        <aside class="lg:col-span-4 xl:col-span-3 space-y-3 lg:overflow-y-auto sidebar-scroll pr-1 no-print">
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-[11px] font-black text-slate-500 uppercase mb-2.5 tracking-widest">1. Dodaj proces do sieci</h2>
                 
-                <div class="space-y-4 italic">
+                <div class="space-y-2.5 italic">
                     <div>
-                        <label class="text-[10px] font-bold uppercase text-slate-400">Treść procesu:</label>
-                        <textarea id="proc-label" rows="2" placeholder="np. Myśl 'nie dam rady'&#10;(Enter = nowa linia)" class="w-full p-2 border rounded bg-slate-50 outline-none focus:ring-2 ring-indigo-200 resize-y"></textarea>
+                        <label class="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">Treść procesu:</label>
+                        <textarea id="proc-label" rows="2" placeholder="np. Myśl 'nie dam rady'&#10;(Enter = nowa linia)" class="w-full p-2 text-xs border rounded bg-slate-50 outline-none focus:ring-2 ring-indigo-200 resize-y"></textarea>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400">Wymiar EEMM:</label>
-                            <select id="proc-dim" class="w-full p-2 text-xs border rounded bg-white">
+                            <label class="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">Wymiar EEMM:</label>
+                            <select id="proc-dim" class="w-full p-1.5 text-xs border rounded bg-white">
                                 <option value="#f59e0b">Uwaga (Pomarańczowy)</option>
                                 <option value="#3b82f6">Poznanie (Niebieski)</option>
                                 <option value="#8b5cf6">Ja (Fioletowy)</option> 
@@ -74,8 +86,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold uppercase text-slate-400">Funkcja (Status):</label>
-                            <select id="proc-status" class="w-full p-2 text-xs border rounded bg-white font-bold text-slate-700">
+                            <label class="text-[10px] font-bold uppercase text-slate-400 block mb-0.5">Funkcja (Status):</label>
+                            <select id="proc-status" class="w-full p-1.5 text-xs border rounded bg-white font-bold text-slate-700">
                                 <option value="#fee2e2">Proces PROBLEMOWY</option>
                                 <option value="#dcfce7">ZASÓB / Cel terapii</option>
                                 <option value="#f1f5f9">Neutralny / Kontekst</option>
@@ -83,54 +95,63 @@
                         </div>
                     </div>
 
-                    <button onclick="addNode()" class="w-full bg-slate-900 text-white font-black py-3 rounded-lg hover:bg-black transition-all shadow-lg uppercase text-xs">Dodaj Proces</button>
+                    <button onclick="addNode()" class="w-full bg-slate-900 text-white font-black py-2 rounded-lg hover:bg-black transition-all shadow uppercase text-xs">Dodaj Proces</button>
                     
-                    <button onclick="toggleQuestionsModal()" class="w-full mt-2 bg-indigo-50 text-indigo-700 border border-indigo-200 font-black py-2 rounded-lg hover:bg-indigo-100 transition-all uppercase text-[10px]">Przykładowe pytania (EEMM)</button>
+                    <button onclick="toggleQuestionsModal()" class="w-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-black py-1.5 rounded-lg hover:bg-indigo-100 transition-all uppercase text-[10px]">Przykładowe pytania (EEMM)</button>
                 </div>
             </div>
 
-            <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
-                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">2. Połącz procesy</h2>
-                <div class="space-y-3">
-                    <select id="edge-from" class="w-full p-2 text-xs border rounded"></select>
-                    <select id="edge-to" class="w-full p-2 text-xs border rounded"></select>
-                    <select id="edge-label" class="w-full p-2 text-xs border rounded font-bold bg-indigo-50">
-                        <option value="NASILA">NASILA / WYZWALA </option>
-                        <option value="OSŁABIA">OSŁABIA </option>
-                        <option value="WZAJEMNE">WZAJEMNE WZMOCNIENIE </option>
+            <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-[11px] font-black text-slate-500 uppercase mb-2.5 tracking-widest">2. Połącz procesy</h2>
+                <div class="space-y-2">
+                    <select id="edge-from" class="w-full p-1.5 text-xs border rounded"></select>
+                    <select id="edge-to" class="w-full p-1.5 text-xs border rounded"></select>
+                    <select id="edge-label" class="w-full p-1.5 text-xs border rounded font-bold bg-indigo-50">
+                        <option value="NASILA">NASILA / WYZWALA</option>
+                        <option value="OSŁABIA">OSŁABIA</option>
+                        <option value="WZAJEMNE">WZAJEMNE WZMOCNIENIE</option>
                     </select>
-                    <div class="range-container">
-                        <label class="text-[10px] font-bold uppercase text-slate-400">Wielkość grotu strzałki:</label>
-                        <input type="range" id="edge-weight" min="0.5" max="3" step="0.1" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+                    <div class="range-container pt-1">
+                        <div class="flex justify-between items-center">
+                            <label class="text-[10px] font-bold uppercase text-slate-400">Wielkość grotu strzałki:</label>
+                        </div>
+                        <input type="range" id="edge-weight" min="0.5" max="3" step="0.1" value="1" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer">
                     </div>
                     <button onclick="addConnection()" class="w-full bg-indigo-600 text-white font-black py-2 rounded shadow hover:bg-indigo-700 transition uppercase text-[10px]">Utwórz relację</button>
                 </div>
             </div>
         </aside>
 
-        <main class="xl:col-span-8 space-y-4">
-            <div class="bg-white p-4 rounded-xl shadow-lg border border-slate-200 print:shadow-none print:border-none">
-                <div id="network-container"></div>
+        <main class="lg:col-span-8 xl:col-span-9 flex flex-col h-[65vh] lg:h-full lg:overflow-hidden">
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex-1 flex flex-col overflow-hidden print:shadow-none print:border-none">
                 
-                <div class="mt-4 p-4 bg-slate-50 rounded-lg border flex flex-wrap gap-6 items-center justify-center print:bg-white">
-                    <div class="flex items-center gap-2">
-                        <span class="w-6 h-6 border-4 border-slate-400 bg-[#fee2e2] rounded-full"></span>
-                        <span class="text-[10px] font-bold uppercase">Problem</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-6 h-6 border-4 border-slate-400 bg-[#dcfce7] rounded-full"></span>
-                        <span class="text-[10px] font-bold uppercase">Zasób</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-1 h-4 bg-blue-500"></span>
-                        <span class="text-[10px] font-bold uppercase text-blue-600">Kolor obramowania = Wymiar EEMM</span>
-                    </div>
-                    <button onclick="deleteSelected()" class="text-[10px] text-slate-500 font-bold uppercase ml-auto hover:text-red-600 no-print border border-slate-300 rounded px-2 py-1 bg-white">Usuń zaznaczone</button>
-                    
-                    <button onclick="resetAll()" class="text-[10px] text-red-500 font-bold uppercase ml-4 no-print">Resetuj wszystko</button>
-                    <button onclick="undoLast()" class="text-[10px] text-orange-500 font-bold uppercase ml-4 no-print">Cofnij</button>
+                <div class="flex-1 relative min-h-0">
+                    <div id="network-container"></div>
                 </div>
-                <p class="text-center text-slate-400 text-xs mt-2 no-print italic">Wskazówka: Kliknij dwukrotnie na proces na planszy, aby edytować jego treść.</p>
+                
+                <div class="mt-2.5 px-3 py-2 bg-slate-50 rounded-lg border flex flex-wrap gap-x-5 gap-y-2 items-center justify-between shrink-0 print:bg-white">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 border-2 border-slate-400 bg-[#fee2e2] rounded-full"></span>
+                            <span class="text-[10px] font-bold uppercase">Problem</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-4 h-4 border-2 border-slate-400 bg-[#dcfce7] rounded-full"></span>
+                            <span class="text-[10px] font-bold uppercase">Zasób</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-1 h-3.5 bg-blue-500"></span>
+                            <span class="text-[10px] font-bold uppercase text-blue-600">Obramowanie = Wymiar EEMM</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 no-print ml-auto">
+                        <button onclick="deleteSelected()" class="text-[10px] text-slate-600 font-bold uppercase hover:text-red-600 border border-slate-300 rounded px-2 py-1 bg-white transition">Usuń zaznaczone</button>
+                        <button onclick="undoLast()" class="text-[10px] text-orange-600 hover:text-orange-700 font-bold uppercase">Cofnij</button>
+                        <button onclick="resetAll()" class="text-[10px] text-red-600 hover:text-red-700 font-bold uppercase">Resetuj</button>
+                    </div>
+                </div>
+                <p class="text-center text-slate-400 text-[11px] mt-1.5 no-print italic shrink-0">Wskazówka: Kliknij dwukrotnie na proces na planszy, aby edytować jego treść.</p>
             </div>
         </main>
     </div>
@@ -176,11 +197,10 @@
         const options = {
             nodes: {
                 shape: 'dot',
-                size: 35,
+                size: 32,
                 font: { size: 12, face: 'Verdana', color: '#1e293b' },
                 borderWidth: 5,
                 shadow: true,
-                // ZMIANA: Limit szerokości węzła zmuszający tekst do zawijania
                 widthConstraint: { maximum: 160 } 
             },
             edges: {
@@ -201,19 +221,20 @@
         };
         const network = new vis.Network(container, data, options);
 
-        // ZMIANA: Nasłuchiwanie dwukrotnego kliknięcia w celu edycji
+        // Automatyczne dopasowanie płótna po zmianie rozmiaru okna przeglądarki
+        window.addEventListener('resize', () => {
+            network.redraw();
+        });
+
         network.on("doubleClick", function (params) {
             if (params.nodes.length > 0) {
                 const nodeId = params.nodes[0];
                 const nodeToEdit = nodes.get(nodeId);
                 
-                // Okno dialogowe przeglądarki do zmiany tekstu
                 const newLabel = prompt("Edytuj treść procesu:", nodeToEdit.label);
                 
                 if (newLabel !== null && newLabel.trim() !== "") {
-                    // Dodajemy stary stan do historii "Cofnij"
                     historyStack.push({ type: 'edit', id: nodeId, oldLabel: nodeToEdit.label });
-                    // Aktualizujemy etykietę węzła
                     nodes.update({ id: nodeId, label: newLabel });
                     updateSelects();
                 }
@@ -249,22 +270,18 @@
             const arrowScale = parseFloat(document.getElementById('edge-weight').value);
             
             if (!from || !to) return;
-            // Ustalanie typów strzałek na podstawie relacji
             let arrowTypeTo = 'arrow';
-            // Domyślnie zamknięty grot
             let arrowTypeFrom = 'arrow';
             let enableFrom = false;
             let edgeColor = '#dc3545';
 
             if (label === 'OSŁABIA') {
                 arrowTypeTo = 'vee';
-                // Otwarty grot (kształt V)
                 edgeColor = '#28a745';
             } else if (label === 'WZAJEMNE') {
                 enableFrom = true;
-                // Wzajemne - strzałki po obu stronach (zamknięte)
                 edgeColor = '#343a40';
-            }  else if (label === 'NASILA') {
+            } else if (label === 'NASILA') {
                 edgeColor = '#dc3545';
             }
 
@@ -272,13 +289,13 @@
                 from: from,
                 to: to,
                 label: label,
-                width: 2, // Stała grubość połączenia
+                width: 2,
                 color: {
                     color: edgeColor,
                     highlight: edgeColor,
                     hover: edgeColor
                 },
-                dashes: false, // Brak przerywanych linii
+                dashes: false,
                 arrows: {
                     to: { enabled: true, type: arrowTypeTo, scaleFactor: arrowScale },
                     from: { enabled: enableFrom, type: arrowTypeFrom, scaleFactor: arrowScale }
@@ -314,7 +331,6 @@
             } else if (lastAction.type === 'node') {
                 try { nodes.remove(lastAction.id); updateSelects(); } catch (e) { }
             } else if (lastAction.type === 'edit') {
-                // ZMIANA: Obsługa cofania zmiany tekstu w procesie
                 try { nodes.update({ id: lastAction.id, label: lastAction.oldLabel }); updateSelects(); } catch (e) { }
             }
         }
@@ -363,7 +379,6 @@
             reader.readAsText(e.target.files[0]);
         }
 
-        // --- Logika Panelu Pytań (Modal) ---
         function toggleQuestionsModal() {
             const modal = document.getElementById('questionsModal');
             modal.classList.toggle('hidden');
@@ -411,7 +426,7 @@
                       <li>Badanie problemów związanych ze zmiennością: Jakie wzorce zachowania istotnego z perspektywy biofizjologicznej można rozpoznać u klientki/klienta wtedy, kiedy zmaga się ze swoimi trudnościami, albo jakich brak, choć mogłyby być pomocne? Czy wyczuwasz jakąś sztywność lub zauważasz brak zdrowej zmienności na poziomie zachowań związanych z biofizjologią (np. niepowodzenie prób odżywiania się zdrowo, niechęć do badania możliwości podjęcia aktywności fizycznej)?</li>
                       <li>Badanie problemów związanych z selekcją: Jakie funkcje pełnią w sieci klientki/klienta owe problematyczne zachowania związane z biofizjologią? Na przykład: czy stronienie od ćwiczeń pozwala uniknąć wstydu związanego z własnym ciałem? Czy wzorce złego odżywiania się są uwarunkowane kulturowo? Jeśli lub kiedy pojawiają się formy bardziej adaptacyjne, jakie funkcje mogą pełnić?</li>
                       <li>Badanie problemów związanych z utrzymaniem: W jaki sposób owe dominujące wzorce związane z poziomem biofizjologicznym wspierają, podtrzymują lub nasilają problemy klientki/klienta w modelu sieciowym? Dlaczego bardziej adaptacyjne wzorce nie mogą być utrzymane? Jakie inne elementy lub cechy sieci przeszkadzają w ich utrzymaniu?</li>
-                      <li>Aby zbadać powyższe kwestie, trzeba dobrze poznać główne zachowania związane z poziomem biofizjologicznym. Służące temu pytania mają charakter bardziej zdroworozsądkowy. Poniżej podajemy przykłady.   Adaptacyjne i nieadaptacyjne wzorce diety   Co zdrowego/niezdrowego jada pani/pan na co dzień?   Jak często i kiedy przejada się pani/pan albo ogranicza jedzenie?   Co pani/pan pije? W jakich ilościach?   Adaptacyjne i nieadaptacyjne wzorce aktywności fizycznej   Czy pani/pan ćwiczy? Jak często?   Jaki rodzaj ćwiczeń pani/pan wykonuje?   Jak intensywnie pani/pan ćwiczy?   Od jak dawna pani/pan ćwiczy/nie ćwiczy?   Sen   Jak pani/pan sypia?   Czy ma pani/pan trudności z zaśnięciem?   O której godzinie pani/pan kładzie się spać / budzi się?   Czy po przebudzeniu czuje się pani wypoczęta / pan wypoczęty?   Inne nawyki związane ze zdrowiem   Czy zażywa pani/pan jakieś leki? Jeśli tak, to jak często i w jakich dawkach?   Ile czasu dziennie spędza pani/pan w pozycji siedzącej?   Czy pani/pan medytuje? Jeśli tak, to jak często i jak długo?   Ile czasu spędza pani/pan na powietrzu?   W jaki sposób się pani/pan relaksuje?   </li>
+                      <li>Aby zbadać powyższe kwestie, trzeba dobrze poznać główne zachowania związane z poziomem biofizjologicznym. Służące temu pytania mają charakter bardziej zdroworozsądkowy. Poniżej podajemy przykłady.   Adaptacyjne i nieadaptacyjne wzorce diety   Co zdrowego/niezdrowego jada pani/pan na co dzień?   Jak często i kiedy przejada się pani/pan albo ogranicza jedzenie?   Co pani/pan pije? W jakich ilościach?   Adaptacyjne i nieadaptacyjne wzorce aktywności fizycznej   Czy pani/pan ćwiczy? Jak często?   Jaki rodzaj ćwiczeń pani/pan wykonuje?   Jak intensywnie pani/pan ćwiczy?   Od jak dawna pani/pan ćwiczy/nie ćwiczy?   Sen   Jak pani/pan sypia?   Czy ma pani/pan trudności z zaśnięciem?   O której godzinie pani/pan kładzie się spać / budzi się?   Czy po przebudzeniu czuje się pani wypoczęta / pan wypoczęty?   Inne nawyki związane ze zdrowiem   Czy zażywa pani/pan jakieś leki? Jeśli tak, to jak często i w jakich dawkach?   Ile czasu dziennie spędza pani/pan w pozycji siedzącej?   Czy pani/pan medytuje? Jeśli tak, to jak często i jak długo?   Ile czasu spędza pani/pan na powietrzu?   W jaki sposób się pani/pan relaksuje?</li>
                     </ul>`,
             'kontekst': `<h4 class="font-black text-slate-600 text-lg mb-2">KONTEKST FIZYCZNY</h4>
                          <ul class="list-disc pl-5 space-y-2">
