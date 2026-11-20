@@ -15,6 +15,17 @@
             .print-m-0 { margin: 0 !important; padding: 0 !important; }
             .print-break-inside-avoid { break-inside: avoid; }
         }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .recording-active {
+            animation: pulse-ring 1.5s infinite;
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900 pb-10">
@@ -32,41 +43,77 @@
         
         <aside class="lg:col-span-5 space-y-4 no-print h-fit">
             <div class="bg-white p-5 rounded-xl shadow-md border border-slate-200">
-                <h2 class="text-xs font-black text-slate-500 uppercase mb-4 tracking-widest">Uzupełnij dzienniczek</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xs font-black text-slate-500 uppercase tracking-widest">Uzupełnij dzienniczek</h2>
+                    <span id="speech-status" class="text-[10px] font-bold text-red-600 hidden flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span> Nagrywanie...
+                    </span>
+                </div>
                 
                 <div class="space-y-5">
+                    <!-- A -->
                     <div>
                         <label class="block text-xs font-bold uppercase text-blue-600 mb-1">A - Aktywator (Sytuacja)</label>
                         <p class="text-[10px] text-slate-500 mb-1 italic">Co się wydarzyło? Gdzie byłeś/aś?</p>
-                        <textarea id="input-a" rows="2" class="w-full p-2 text-sm border rounded bg-slate-50 focus:ring-2 ring-blue-200 outline-none transition-all" placeholder="np. Szef poprosił mnie o rozmowę..." oninput="updateView()"></textarea>
+                        <div class="relative">
+                            <textarea id="input-a" rows="2" class="w-full p-2 pr-10 text-sm border rounded bg-slate-50 focus:ring-2 ring-blue-200 outline-none transition-all" placeholder="np. Szef poprosił mnie o rozmowę..." oninput="updateView()"></textarea>
+                            <button type="button" onclick="toggleDictation('input-a', this)" title="Dyktuj tekst" class="mic-btn absolute right-2 bottom-2 p-1.5 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 shadow-sm transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                            </button>
+                        </div>
                     </div>
 
+                    <!-- B -->
                     <div class="pl-2 border-l-2 border-slate-300">
                         <label class="block text-xs font-bold uppercase text-purple-600 mb-1">B - Przekonania (Myśli)</label>
                         <p class="text-[10px] text-slate-500 mb-1 italic">Co przemknęło Ci przez głowę?</p>
-                        <textarea id="input-b" rows="2" class="w-full p-2 text-sm border rounded bg-slate-50 focus:ring-2 ring-purple-200 outline-none transition-all" placeholder="np. Na pewno chce mnie zwolnić." oninput="updateView()"></textarea>
+                        <div class="relative">
+                            <textarea id="input-b" rows="2" class="w-full p-2 pr-10 text-sm border rounded bg-slate-50 focus:ring-2 ring-purple-200 outline-none transition-all" placeholder="np. Na pewno chce mnie zwolnić." oninput="updateView()"></textarea>
+                            <button type="button" onclick="toggleDictation('input-b', this)" title="Dyktuj tekst" class="mic-btn absolute right-2 bottom-2 p-1.5 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-purple-600 hover:border-purple-300 shadow-sm transition-all">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                            </button>
+                        </div>
                     </div>
 
+                    <!-- C -->
                     <div class="pl-2 border-l-2 border-slate-300 space-y-3">
                         <label class="block text-xs font-bold uppercase text-red-600 mb-1">C - Konsekwencje</label>
                         
                         <div>
                             <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Emocje</p>
-                            <textarea id="input-c-emo" rows="1" class="w-full p-2 text-sm border rounded bg-red-50 focus:ring-2 ring-red-200 outline-none transition-all" placeholder="np. Lęk (8/10), smutek" oninput="updateView()"></textarea>
+                            <div class="relative">
+                                <textarea id="input-c-emo" rows="2" class="w-full p-2 pr-10 text-sm border rounded bg-red-50 focus:ring-2 ring-red-200 outline-none transition-all" placeholder="np. Lęk (8/10), smutek" oninput="updateView()"></textarea>
+                                <button type="button" onclick="toggleDictation('input-c-emo', this)" title="Dyktuj tekst" class="mic-btn absolute right-2 bottom-2 p-1.5 rounded-full bg-white border border-red-200 text-slate-500 hover:text-red-600 hover:border-red-400 shadow-sm transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                                </button>
+                            </div>
                         </div>
+
                         <div>
                             <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Objawy z ciała</p>
-                            <textarea id="input-c-body" rows="1" class="w-full p-2 text-sm border rounded bg-orange-50 focus:ring-2 ring-orange-200 outline-none transition-all" placeholder="np. Ścisk w żołądku, napięcie barków" oninput="updateView()"></textarea>
+                            <div class="relative">
+                                <textarea id="input-c-body" rows="2" class="w-full p-2 pr-10 text-sm border rounded bg-orange-50 focus:ring-2 ring-orange-200 outline-none transition-all" placeholder="np. Ścisk w żołądku, napięcie barków" oninput="updateView()"></textarea>
+                                <button type="button" onclick="toggleDictation('input-c-body', this)" title="Dyktuj tekst" class="mic-btn absolute right-2 bottom-2 p-1.5 rounded-full bg-white border border-orange-200 text-slate-500 hover:text-orange-600 hover:border-orange-400 shadow-sm transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                                </button>
+                            </div>
                         </div>
+
                         <div>
                             <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Zachowanie</p>
-                            <textarea id="input-c-beh" rows="1" class="w-full p-2 text-sm border rounded bg-emerald-50 focus:ring-2 ring-emerald-200 outline-none transition-all" placeholder="np. Unikanie kontaktu wzrokowego, milczenie" oninput="updateView()"></textarea>
+                            <div class="relative">
+                                <textarea id="input-c-beh" rows="2" class="w-full p-2 pr-10 text-sm border rounded bg-emerald-50 focus:ring-2 ring-emerald-200 outline-none transition-all" placeholder="np. Unikanie kontaktu wzrokowego, milczenie" oninput="updateView()"></textarea>
+                                <button type="button" onclick="toggleDictation('input-c-beh', this)" title="Dyktuj tekst" class="mic-btn absolute right-2 bottom-2 p-1.5 rounded-full bg-white border border-emerald-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-400 shadow-sm transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                <button onclick="clearForm()" class="w-full mt-4 text-xs text-slate-500 font-bold uppercase hover:text-red-600 border border-slate-300 rounded py-2 bg-white transition-all">
-                    Wyczyść formularz
-                </button>
+                    <button onclick="clearForm()" class="w-full mt-4 text-xs text-slate-500 font-bold uppercase hover:text-red-600 border border-slate-300 rounded py-2 bg-white transition-all">
+                        Wyczyść formularz
+                    </button>
+                </div>
             </div>
         </aside>
 
@@ -123,29 +170,138 @@
                     </div>
                 </div>
                 
-                <p class="text-center text-[10px] text-slate-400 mt-6 no-print uppercase tracking-wider">Wypełnij pola po lewej stronie, aby wygenerować model</p>
+                <p class="text-center text-[10px] text-slate-400 mt-6 no-print uppercase tracking-wider">Wypełnij lub podyktuj pola po lewej stronie, aby wygenerować model</p>
             </div>
         </main>
 
     </div>
 
     <script>
+        const FIELDS = ['a', 'b', 'c-emo', 'c-body', 'c-beh'];
+
         function updateView() {
-            const fields = ['a', 'b', 'c-emo', 'c-body', 'c-beh', 'd', 'e'];
-            
-            fields.forEach(field => {
-                const val = document.getElementById(`input-${field}`).value;
-                document.getElementById(`output-${field}`).innerText = val || "Brak wpisu...";
+            FIELDS.forEach(field => {
+                const inputEl = document.getElementById(`input-${field}`);
+                const outputEl = document.getElementById(`output-${field}`);
+                if (inputEl && outputEl) {
+                    outputEl.innerText = inputEl.value || "Brak wpisu...";
+                }
             });
         }
 
         function clearForm() {
-            if(confirm("Czy na pewno chcesz wyczyścić wszystkie pola?")) {
-                const fields = ['a', 'b', 'c-emo', 'c-body', 'c-beh', 'd', 'e'];
-                fields.forEach(field => {
-                    document.getElementById(`input-${field}`).value = '';
+            if (confirm("Czy na pewno chcesz wyczyścić wszystkie pola?")) {
+                stopDictation();
+                FIELDS.forEach(field => {
+                    const inputEl = document.getElementById(`input-${field}`);
+                    if (inputEl) inputEl.value = '';
                 });
                 updateView();
+            }
+        }
+
+        // --- OBSŁUGA DYKTOWANIA (WEB SPEECH API) ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let activeInputId = null;
+        let activeBtn = null;
+        let baseText = '';
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'pl-PL';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                document.getElementById('speech-status').classList.remove('hidden');
+            };
+
+            recognition.onresult = (event) => {
+                if (!activeInputId) return;
+                const textarea = document.getElementById(activeInputId);
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                if (finalTranscript) {
+                    const separator = baseText && !baseText.endsWith(' ') && !baseText.endsWith('\n') ? ' ' : '';
+                    baseText += separator + finalTranscript.trim();
+                }
+
+                const interimSeparator = baseText && interimTranscript && !baseText.endsWith(' ') && !baseText.endsWith('\n') ? ' ' : '';
+                textarea.value = baseText + interimSeparator + interimTranscript;
+                updateView();
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Błąd rozpoznawania mowy:', event.error);
+                if (event.error === 'not-allowed') {
+                    alert('Brak dostępu do mikrofonu. Sprawdź uprawnienia przeglądarki.');
+                }
+                stopDictation();
+            };
+
+            recognition.onend = () => {
+                stopDictation();
+            };
+        } else {
+            // Ukryj przyciski mikrofonu, jeśli przeglądarka nie wspiera rozpoznawania mowy
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.mic-btn').forEach(btn => btn.style.display = 'none');
+            });
+        }
+
+        function stopDictation() {
+            if (recognition && activeInputId) {
+                try { recognition.stop(); } catch (e) {}
+            }
+            if (activeBtn) {
+                activeBtn.classList.remove('recording-active');
+            }
+            document.getElementById('speech-status').classList.add('hidden');
+            activeInputId = null;
+            activeBtn = null;
+        }
+
+        function toggleDictation(inputId, btnElement) {
+            if (!recognition) {
+                alert('Twoja przeglądarka nie obsługuje dyktowania głosowego. Użyj Chrome, Edge lub Safari.');
+                return;
+            }
+
+            // Jeśli kliknięto ten sam przycisk podczas nagrywania -> zatrzymaj
+            if (activeInputId === inputId) {
+                stopDictation();
+                return;
+            }
+
+            // Jeśli nagrywało inne pole -> najpierw zatrzymaj tamto
+            if (activeInputId) {
+                stopDictation();
+            }
+
+            // Rozpocznij nagrywanie dla wybranego pola
+            activeInputId = inputId;
+            activeBtn = btnElement;
+            const textarea = document.getElementById(inputId);
+            baseText = textarea.value;
+            
+            btnElement.classList.add('recording-active');
+            textarea.focus();
+
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error(e);
+                stopDictation();
             }
         }
     </script>
